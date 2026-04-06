@@ -7,6 +7,7 @@
     <title>Gestor Mentes Brillantes - Pro</title>
     <!-- Librerías -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link
@@ -345,6 +346,29 @@
         </div>
     </div>
 
+    <!-- MODAL LOGIN ADMIN -->
+    <div id="modal-login" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all">
+            <div class="bg-slate-800 p-6 flex justify-between items-center text-white">
+                <h3 class="font-bold text-xl brand-font">Acceso Administrador</h3>
+                <button onclick="document.getElementById('modal-login').classList.add('hidden')" class="hover:bg-white/20 p-2 rounded-full transition-colors"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6">
+                <form onsubmit="iniciarSesion(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Email</label>
+                        <input type="email" id="login-email" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-slate-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Contraseña</label>
+                        <input type="password" id="login-password" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-slate-500 outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2.5 rounded-lg text-sm font-bold shadow-md transition-colors mt-2">Ingresar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- UI WEB (HEADER) -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-40 no-print shadow-sm">
         <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -367,20 +391,20 @@
 
                 <div class="h-8 w-px bg-slate-200 mx-2 hidden md:block"></div>
 
-                <button onclick="abrirModalConfigBase()"
-                    class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                <button onclick="abrirModalConfigBase()" id="btn-config-admin"
+                    class="hidden p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                     title="Configuración Base de Días">
                     <i class="fas fa-cog text-lg"></i>
                 </button>
 
-                <button onclick="toggleModal(true)"
-                    class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                <button onclick="toggleModal(true)" id="btn-team-admin"
+                    class="hidden p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                     title="Gestionar Mentores">
                     <i class="fas fa-users-cog text-lg"></i>
                 </button>
 
                 <!-- Menú Desplegable BACKUP -->
-                <div class="relative group z-30">
+                <div class="relative group z-30 hidden" id="btn-backup-admin">
                     <button
                         class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all">
                         <i class="fas fa-database"></i> <span class="hidden sm:inline">Datos</span> <i
@@ -433,6 +457,12 @@
                     class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all"
                     title="Copiar Texto WhatsApp">
                     <i class="fab fa-whatsapp text-lg"></i>
+                </button>
+
+                <!-- Botón Login Admin -->
+                <button onclick="toggleLogin()" id="btn-login-admin"
+                    class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all">
+                    <i class="fas fa-lock"></i> <span class="hidden sm:inline" id="txt-login-btn">Admin</span>
                 </button>
             </div>
         </div>
@@ -558,11 +588,117 @@
         // NUEVA CONFIGURACIÓN: Guardar personalizaciones de días/horas
         let configuracionDias = JSON.parse(localStorage.getItem('mentores_2026_config_dias')) || {};
         let configuracionBase = JSON.parse(localStorage.getItem('mentores_2026_config_base')) || DEFAULT_CONFIG_BASE;
+        let session = null;
 
-        window.onload = () => {
+        // --- SUPABASE CONFIG ---
+        const SUPABASE_URL = 'https://vasjxzgdgafrlnxjqbqf.supabase.co';
+        const SUPABASE_ANON_KEY = 'MI_PUBLISHABLE_KEY';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function initData() {
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            session = currentSession;
+            
+            supabase.auth.onAuthStateChange((_event, curSession) => {
+                session = curSession;
+                verificarEstadoBotonesAdmin();
+                renderTodo();
+            });
+
+            try {
+                // Mentores
+                const { data: mentoresData, error: err1 } = await supabase.from('mentores').select('*');
+                if (!err1 && mentoresData) {
+                    mentores = mentoresData.map(m => m.nombre);
+                    localStorage.setItem('mentores_2026_list', JSON.stringify(mentores));
+                }
+
+                // Asignaciones
+                const { data: asigData, error: err2 } = await supabase.from('asignaciones').select('*');
+                if (!err2 && asigData) {
+                    asignaciones = {};
+                    asigData.forEach(row => { asignaciones[row.date_key] = row.mentor_nombre; });
+                    localStorage.setItem('mentores_2026_assignments', JSON.stringify(asignaciones));
+                }
+
+                // Config Días
+                const { data: confDiasData, error: err3 } = await supabase.from('configuracion_dias').select('*');
+                if (!err3 && confDiasData) {
+                    configuracionDias = {};
+                    confDiasData.forEach(row => { configuracionDias[row.date_key] = { actividad: row.actividad, horario: row.horario }; });
+                    localStorage.setItem('mentores_2026_config_dias', JSON.stringify(configuracionDias));
+                }
+
+                // Config Base
+                const { data: confBaseData, error: err4 } = await supabase.from('configuracion_base').select('*');
+                if (!err4 && confBaseData && confBaseData.length > 0) {
+                    configuracionBase = {};
+                    confBaseData.forEach(row => {
+                        configuracionBase[row.dia] = {
+                            activo: row.activo,
+                            actividad: row.actividad,
+                            horario: row.horario,
+                            esVirtualSiempre: row.esVirtualSiempre
+                        };
+                    });
+                    localStorage.setItem('mentores_2026_config_base', JSON.stringify(configuracionBase));
+                }
+            } catch (err) {
+                console.error("Error cargando Supabase, usando localStorage", err);
+            }
+            verificarEstadoBotonesAdmin();
             renderMeses();
             renderTodo();
             document.getElementById('pdf-gen-date').innerText = new Date().toLocaleDateString();
+        }
+
+        // --- RUTINAS DE AUTENTICACIÓN ---
+        function toggleLogin() {
+            if (session) {
+                supabase.auth.signOut();
+            } else {
+                document.getElementById('modal-login').classList.remove('hidden');
+            }
+        }
+
+        async function iniciarSesion(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                alert('Credenciales incorrectas');
+            } else {
+                document.getElementById('modal-login').classList.add('hidden');
+                document.getElementById('login-password').value = '';
+                showToast('Sesión iniciada');
+            }
+        }
+
+        function verificarEstadoBotonesAdmin() {
+            const btnConfig = document.getElementById('btn-config-admin');
+            const btnTeam = document.getElementById('btn-team-admin');
+            const btnBgDatos = document.getElementById('btn-backup-admin');
+            const loginBtnTxt = document.getElementById('txt-login-btn');
+            const loginBtnIcon = document.querySelector('#btn-login-admin i');
+
+            if (session) {
+                if (btnConfig) btnConfig.classList.remove('hidden');
+                if (btnTeam) btnTeam.classList.remove('hidden');
+                if (btnBgDatos) btnBgDatos.classList.remove('hidden');
+                if (loginBtnTxt) loginBtnTxt.innerText = "Salir";
+                if (loginBtnIcon) { loginBtnIcon.classList.remove('fa-lock'); loginBtnIcon.classList.add('fa-sign-out-alt'); }
+            } else {
+                if (btnConfig) btnConfig.classList.add('hidden');
+                if (btnTeam) btnTeam.classList.add('hidden');
+                if (btnBgDatos) btnBgDatos.classList.add('hidden');
+                if (loginBtnTxt) loginBtnTxt.innerText = "Admin";
+                if (loginBtnIcon) { loginBtnIcon.classList.add('fa-lock'); loginBtnIcon.classList.remove('fa-sign-out-alt'); }
+            }
+        }
+
+        window.onload = () => {
+            initData();
         };
 
         function getISOWeek(d) {
@@ -632,7 +768,7 @@
             });
         }
 
-        function guardarConfigBase() {
+        async function guardarConfigBase() {
             const diasOrden = [1, 2, 3, 4, 5, 6, 0];
             let nuevaConfig = {};
             diasOrden.forEach(day => {
@@ -645,6 +781,20 @@
             });
             configuracionBase = nuevaConfig;
             localStorage.setItem('mentores_2026_config_base', JSON.stringify(configuracionBase));
+            
+            try {
+                const upserts = Object.keys(nuevaConfig).map(day => ({
+                    dia: parseInt(day),
+                    activo: nuevaConfig[day].activo,
+                    actividad: nuevaConfig[day].actividad,
+                    horario: nuevaConfig[day].horario,
+                    esVirtualSiempre: nuevaConfig[day].esVirtualSiempre
+                }));
+                await supabase.from('configuracion_base').upsert(upserts);
+            } catch (e) {
+                console.error(e);
+            }
+
             cerrarModalConfigBase();
             showToast('Configuración Global Guardada');
             renderTodo();
@@ -760,25 +910,31 @@
                     <div class="mb-3 relative group">
                         <div class="flex justify-between items-start">
                             <h4 class="font-bold text-slate-700 leading-tight text-sm pr-6 ${ev.isHoliday ? 'line-through opacity-50' : ''}">${ev.actividad}</h4>
-                            ${!ev.isHoliday ? `<button onclick="abrirModalEdicion('${ev.dateKey}', '${safeActividad}', '${safeHorario}')" class="text-slate-300 hover:text-indigo-600 transition-colors absolute right-0 top-0 opacity-0 group-hover:opacity-100 bg-white rounded-full p-1" title="Editar Actividad/Horario"><i class="fas fa-edit"></i></button>` : ''}
+                            ${(!ev.isHoliday && session) ? `<button onclick="abrirModalEdicion('${ev.dateKey}', '${safeActividad}', '${safeHorario}')" class="text-slate-300 hover:text-indigo-600 transition-colors absolute right-0 top-0 opacity-0 group-hover:opacity-100 bg-white rounded-full p-1" title="Editar Actividad/Horario"><i class="fas fa-edit"></i></button>` : ''}
                         </div>
                         ${!ev.isHoliday ? `<div class="mt-1 flex items-center text-xs text-slate-500"><i class="far ${timeIcon} mr-1"></i> ${ev.horario}</div>` : ''}
                     </div>
                 `;
                 if (!ev.isHoliday) {
-                    let selectHtml = `
-                        <div class="relative pt-2 border-t border-slate-50">
-                            <select onchange="guardar('${ev.dateKey}', this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer appearance-none">
-                                <option value="">Seleccionar Mentor...</option>
-                                ${mentores.map(m => `<option value="${m}" ${m === ev.assignedTo ? 'selected' : ''}>${m}</option>`).join('')}
-                            </select>
-                            <div class="absolute right-3 top-5 pointer-events-none text-slate-400"><i class="fas fa-chevron-down text-xs"></i></div>
-                        </div>
-                    `;
-                    if (mentores.length === 0) {
-                        selectHtml = `<button onclick="toggleModal(true)" class="w-full py-2 border border-dashed border-blue-300 text-blue-500 rounded-lg text-sm hover:bg-blue-50 transition-colors mt-2">+ Añadir Mentores</button>`;
+                    if (session) {
+                        let selectHtml = `
+                            <div class="relative pt-2 border-t border-slate-50">
+                                <select onchange="guardar('${ev.dateKey}', this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer appearance-none">
+                                    <option value="">Seleccionar Mentor...</option>
+                                    ${mentores.map(m => `<option value="${m}" ${m === ev.assignedTo ? 'selected' : ''}>${m}</option>`).join('')}
+                                </select>
+                                <div class="absolute right-3 top-5 pointer-events-none text-slate-400"><i class="fas fa-chevron-down text-xs"></i></div>
+                            </div>
+                        `;
+                        if (mentores.length === 0) {
+                            selectHtml = `<button onclick="toggleModal(true)" class="w-full py-2 border border-dashed border-blue-300 text-blue-500 rounded-lg text-sm hover:bg-blue-50 transition-colors mt-2">+ Añadir Mentores</button>`;
+                        }
+                        webContent += selectHtml;
+                    } else {
+                        // MODO SOLO LECTURA
+                        const labelAsignado = ev.assignedTo ? `<div class="mt-2 pt-2 border-t border-slate-50 text-sm font-semibold text-slate-800 flex items-center"><i class="fas fa-user-check text-green-500 mr-2"></i> ${ev.assignedTo}</div>` : `<div class="mt-2 pt-2 border-t border-slate-50 text-sm italic text-slate-400">Sin asignar</div>`;
+                        webContent += labelAsignado;
                     }
-                    webContent += selectHtml;
                 } else {
                     webContent += `<div class="text-xs text-red-500 italic text-center py-2 border-t border-red-100 mt-2">No programable</div>`;
                 }
@@ -837,7 +993,7 @@
             document.getElementById('modal-editar-dia').classList.add('hidden');
         }
 
-        function guardarEdicionDia(e) {
+        async function guardarEdicionDia(e) {
             e.preventDefault();
             const dateKey = document.getElementById('edit-datekey').value;
             const actividad = document.getElementById('edit-actividad').value.trim();
@@ -846,6 +1002,7 @@
             if (actividad && horario) {
                 configuracionDias[dateKey] = { actividad, horario };
                 localStorage.setItem('mentores_2026_config_dias', JSON.stringify(configuracionDias));
+                try { await supabase.from('configuracion_dias').upsert({ date_key: dateKey, actividad, horario }); } catch(err){}
 
                 cerrarModalEdicion();
                 showToast('Actividad modificada');
@@ -853,11 +1010,12 @@
             }
         }
 
-        function restaurarDiaPorDefecto() {
+        async function restaurarDiaPorDefecto() {
             const dateKey = document.getElementById('edit-datekey').value;
             if (configuracionDias[dateKey]) {
                 delete configuracionDias[dateKey];
                 localStorage.setItem('mentores_2026_config_dias', JSON.stringify(configuracionDias));
+                try { await supabase.from('configuracion_dias').delete().eq('date_key', dateKey); } catch(err){}
             }
             cerrarModalEdicion();
             showToast('Día restaurado al valor por defecto');
@@ -925,20 +1083,26 @@
 
         // --- FUNCIONES INTERACTIVAS MENTORES ---
 
-        function guardar(key, val) {
-            if (!val) delete asignaciones[key];
-            else asignaciones[key] = val;
+        async function guardar(key, val) {
+            if (!val) {
+                delete asignaciones[key];
+                try { await supabase.from('asignaciones').delete().eq('date_key', key); } catch(err){}
+            } else {
+                asignaciones[key] = val;
+                try { await supabase.from('asignaciones').upsert({ date_key: key, mentor_nombre: val }); } catch(err){}
+            }
             localStorage.setItem('mentores_2026_assignments', JSON.stringify(asignaciones));
             showToast('Guardado');
             renderTodo();
         }
-        function agregarMentor(e) {
+        async function agregarMentor(e) {
             e.preventDefault();
             const input = document.getElementById('nuevo-mentor-input');
             const nombre = input.value.trim();
             if (nombre && !mentores.includes(nombre)) {
                 mentores.push(nombre);
                 localStorage.setItem('mentores_2026_list', JSON.stringify(mentores));
+                try { await supabase.from('mentores').insert({ nombre: nombre }); } catch(err){}
                 input.value = '';
                 renderMentoresUI();
                 renderTodo();
@@ -964,10 +1128,11 @@
                 </div>
             `).join('') || '<p class="text-center text-slate-400 text-sm italic">Sin mentores</p>';
         }
-        function borrarMentor(m) {
+        async function borrarMentor(m) {
             if (confirm('¿Eliminar a ' + m + '?')) {
                 mentores = mentores.filter(x => x !== m);
                 localStorage.setItem('mentores_2026_list', JSON.stringify(mentores));
+                try { await supabase.from('mentores').delete().eq('nombre', m); } catch(err){}
                 renderMentoresUI();
                 renderTodo();
             }
