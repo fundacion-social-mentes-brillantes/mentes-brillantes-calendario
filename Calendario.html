@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor Mentes Brillantes - Pro</title>
+    <!-- Librerías -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        h1,
+        h2,
+        h3,
+        .brand-font {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* Animaciones */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        /* Estilos específicos para la generación de IMAGEN (Flyer) */
+        #capture-target {
+            width: 900px;
+            /* Un poco más ancho para la info extra */
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+            background: white;
+            z-index: -1;
+        }
+
+        .flyer-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            padding: 40px;
+            color: white;
+            border-bottom: 4px solid #fbbf24;
+        }
+
+        .flyer-body {
+            padding: 40px;
+            background-image: radial-gradient(#f1f5f9 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .flyer-row {
+            display: flex;
+            align-items: center;
+            background: white;
+            margin-bottom: 15px;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid transparent;
+        }
+
+        .flyer-row.virtual {
+            border-left-color: #a855f7;
+        }
+
+        .flyer-row.presencial {
+            border-left-color: #22c55e;
+        }
+
+        .flyer-row.festivo {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+            opacity: 0.8;
+        }
+
+        .flyer-date {
+            text-align: center;
+            padding-right: 20px;
+            border-right: 2px solid #f1f5f9;
+            min-width: 90px;
+        }
+
+        .flyer-content {
+            flex: 1;
+            padding-left: 20px;
+        }
+
+        .flyer-status {
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .status-badge-ok {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+        }
+
+        .status-badge-empty {
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px dashed #cbd5e1;
+        }
+
+        .status-badge-assigned {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+
+        /* --- ESTILOS DE IMPRESIÓN PDF --- */
+        @media print {
+            @page {
+                margin: 0;
+                size: letter;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .print-only {
+                display: block !important;
+            }
+
+            .pdf-container {
+                width: 100%;
+                min-height: 100vh;
+                position: relative;
+            }
+
+            .pdf-header {
+                background-color: #1e3a8a !important;
+                color: white !important;
+                padding: 30px 40px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 5px solid #fbbf24;
+            }
+
+            .pdf-content {
+                padding: 20px 40px;
+            }
+
+            .pdf-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+            }
+
+            .pdf-table th {
+                text-align: left;
+                padding: 10px;
+                color: #64748b;
+                font-size: 9px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                border-bottom: 2px solid #e2e8f0;
+            }
+
+            .pdf-table td {
+                padding: 10px;
+                border-bottom: 1px solid #f1f5f9;
+                vertical-align: middle;
+            }
+
+            .pdf-table tr:nth-child(even) {
+                background-color: #f8fafc !important;
+            }
+
+            .pdf-badge {
+                padding: 3px 6px;
+                border-radius: 4px;
+                font-size: 9px;
+                font-weight: bold;
+                text-transform: uppercase;
+                display: inline-block;
+            }
+
+            .pdf-badge-virtual {
+                background-color: #f3e8ff !important;
+                color: #7e22ce !important;
+            }
+
+            .pdf-badge-presencial {
+                background-color: #dcfce7 !important;
+                color: #15803d !important;
+            }
+
+            .pdf-footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                padding: 15px 40px;
+                text-align: center;
+                font-size: 9px;
+                color: #94a3b8;
+                border-top: 1px solid #e2e8f0;
+                background: white;
+            }
+        }
+
+        .print-only {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="text-slate-700 min-h-screen flex flex-col">
+
+    <!-- Input oculto para cargar backup -->
+    <input type="file" id="input-backup" class="hidden" accept=".json" onchange="cargarBackup(this)">
+
+    <!-- MODAL CONFIGURACIÓN GLOBAL BASE -->
+    <div id="modal-config-base"
+        class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all animate-fade-in max-h-[90vh] flex flex-col">
+            <div
+                class="bg-gradient-to-r from-slate-800 to-slate-700 p-6 flex justify-between items-center text-white shrink-0">
+                <div>
+                    <h3 class="font-bold text-xl brand-font">Configuración Base (Global)</h3>
+                    <p class="text-xs text-slate-300 mt-1">Define los días activos, actividades y horarios por defecto
+                        para todo el año.</p>
+                </div>
+                <button onclick="cerrarModalConfigBase()" class="hover:bg-white/20 p-2 rounded-full transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1" id="config-base-container">
+                <!-- Contenido generado dinámicamente -->
+            </div>
+            <div class="bg-slate-50 p-4 border-t flex justify-end shrink-0 gap-2">
+                <button onclick="cerrarModalConfigBase()"
+                    class="text-slate-600 font-medium text-sm hover:bg-slate-100 px-4 py-2 rounded-lg transition-colors">Cancelar</button>
+                <button onclick="guardarConfigBase()"
+                    class="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2">
+                    <i class="fas fa-save"></i> Guardar Cambios Globales
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR ACTIVIDAD/HORARIO -->
+    <div id="modal-editar-dia"
+        class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-fade-in">
+            <div
+                class="bg-gradient-to-r from-indigo-900 to-indigo-700 p-6 flex justify-between items-center text-white">
+                <h3 class="font-bold text-xl brand-font">Editar Actividad</h3>
+                <button onclick="cerrarModalEdicion()" class="hover:bg-white/20 p-2 rounded-full transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form onsubmit="guardarEdicionDia(event)" class="space-y-4">
+                    <input type="hidden" id="edit-datekey">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Nombre de la Actividad</label>
+                        <input type="text" id="edit-actividad" required
+                            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Horario</label>
+                        <input type="text" id="edit-horario" required placeholder="Ej: 5:30 PM - 6:45 PM"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-4 border-t border-slate-100 mt-6">
+                        <button type="button" onclick="restaurarDiaPorDefecto()" id="btn-restaurar-dia"
+                            class="text-xs px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg mr-auto hidden font-semibold transition-colors">
+                            <i class="fas fa-undo mr-1"></i> Restaurar Original
+                        </button>
+                        <button type="button" onclick="cerrarModalEdicion()"
+                            class="text-slate-600 font-medium text-sm hover:bg-slate-100 px-4 py-2 rounded-lg transition-colors">Cancelar</button>
+                        <button type="submit"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md transition-colors">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GESTIÓN DE EQUIPO -->
+    <div id="modal-mentores"
+        class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-fade-in">
+            <div class="bg-gradient-to-r from-blue-900 to-blue-800 p-6 flex justify-between items-center text-white">
+                <h3 class="font-bold text-xl brand-font">Gestión de Equipo</h3>
+                <button onclick="toggleModal(false)" class="hover:bg-white/20 p-2 rounded-full transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form onsubmit="agregarMentor(event)" class="flex gap-2 mb-6">
+                    <input type="text" id="nuevo-mentor-input" placeholder="Nombre..."
+                        class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                        autocomplete="off">
+                    <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors shadow-md hover:shadow-lg">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </form>
+                <div class="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar" id="lista-mentores-ui"></div>
+            </div>
+            <div class="bg-slate-50 p-4 border-t text-right">
+                <button onclick="toggleModal(false)"
+                    class="text-slate-600 font-medium text-sm hover:text-blue-700 px-4 py-2">Listo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- UI WEB (HEADER) -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 no-print shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                    <i class="fas fa-brain text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-800 brand-font leading-tight">Mentes Brillantes</h1>
+                    <p class="text-xs text-slate-500 font-medium">Gestor de Programación</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <div id="toast-msg"
+                    class="hidden px-4 py-2 bg-green-100 text-green-700 text-xs font-bold rounded-full animate-fade-in items-center gap-2">
+                    <i class="fas fa-check"></i> <span id="toast-text">Guardado</span>
+                </div>
+
+                <div class="h-8 w-px bg-slate-200 mx-2 hidden md:block"></div>
+
+                <button onclick="abrirModalConfigBase()"
+                    class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                    title="Configuración Base de Días">
+                    <i class="fas fa-cog text-lg"></i>
+                </button>
+
+                <button onclick="toggleModal(true)"
+                    class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Gestionar Mentores">
+                    <i class="fas fa-users-cog text-lg"></i>
+                </button>
+
+                <!-- Menú Desplegable BACKUP -->
+                <div class="relative group z-30">
+                    <button
+                        class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all">
+                        <i class="fas fa-database"></i> <span class="hidden sm:inline">Datos</span> <i
+                            class="fas fa-chevron-down text-xs ml-1 opacity-70"></i>
+                    </button>
+                    <div class="absolute right-0 top-full pt-2 w-48 hidden group-hover:block animate-fade-in">
+                        <div class="bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
+                            <button onclick="descargarBackup()"
+                                class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 text-slate-700 border-b border-slate-50 flex items-center gap-2 hover:text-blue-600 transition-colors">
+                                <i class="fas fa-download text-blue-500"></i> Guardar Copia
+                            </button>
+                            <button onclick="triggerCargarBackup()"
+                                class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 text-slate-700 flex items-center gap-2 hover:text-orange-600 transition-colors">
+                                <i class="fas fa-upload text-orange-500"></i> Restaurar Copia
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menú Desplegable IMAGEN -->
+                <div class="relative group z-30">
+                    <button
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all">
+                        <i class="fas fa-image"></i> <span class="hidden sm:inline">Imagen</span> <i
+                            class="fas fa-chevron-down text-xs ml-1 opacity-70"></i>
+                    </button>
+                    <div class="absolute right-0 top-full pt-2 w-56 hidden group-hover:block animate-fade-in">
+                        <div class="bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
+                            <button onclick="descargarImagen('dispo')"
+                                class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 text-slate-700 border-b border-slate-50 flex items-center gap-2 hover:text-indigo-600 transition-colors">
+                                <i class="far fa-calendar text-indigo-500"></i> Imagen Disponibilidad
+                            </button>
+                            <button onclick="descargarImagen('asignado')"
+                                class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 text-slate-700 flex items-center gap-2 hover:text-green-600 transition-colors">
+                                <i class="fas fa-user-check text-green-500"></i> Imagen Asignados
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón PDF -->
+                <button onclick="window.print()"
+                    class="bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 px-3 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all"
+                    title="Imprimir PDF Bonito">
+                    <i class="fas fa-print"></i>
+                </button>
+
+                <!-- Botón WhatsApp -->
+                <button onclick="copiarParaWhatsapp()"
+                    class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all"
+                    title="Copiar Texto WhatsApp">
+                    <i class="fab fa-whatsapp text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- UI WEB (CONTENIDO) -->
+    <main class="max-w-6xl mx-auto p-4 md:p-8 no-print flex-grow">
+        <!-- Navegación Meses -->
+        <div class="flex overflow-x-auto pb-4 gap-2 mb-6 custom-scrollbar" id="meses-container"></div>
+        <!-- Título Mes -->
+        <div class="flex justify-between items-end mb-6">
+            <h2 class="text-3xl font-bold text-slate-800 brand-font" id="titulo-mes-actual">Febrero</h2>
+            <span
+                class="text-sm font-semibold text-slate-400 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm">2026</span>
+        </div>
+        <!-- Grid Web -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="grid-web"></div>
+    </main>
+
+    <!-- ÁREA DE CAPTURA PARA IMAGEN (INVISIBLE) -->
+    <div id="capture-target">
+        <div class="flyer-header">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold uppercase tracking-wide brand-font">Mentes Brillantes</h1>
+                    <p class="text-blue-200 mt-1 font-medium tracking-wider text-sm">GIMNASIO EMOCIONAL</p>
+                    <p class="text-white/80 text-xs font-light tracking-widest mt-0.5">SERVICIO DE COORDINACIÓN</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-5xl font-light" id="flyer-month">FEBRERO</div>
+                    <div class="text-xl font-bold text-blue-200">2026</div>
+                </div>
+            </div>
+        </div>
+        <div class="flyer-body" id="flyer-list"></div>
+        <div class="bg-slate-100 p-6 text-center text-slate-400 text-xs border-t border-slate-200">
+            <p>Programación sujeta a cambios • Gimnasio Emocional Mentes Brillantes</p>
+        </div>
+    </div>
+
+    <!-- DISEÑO DE IMPRESIÓN (PDF BONITO) -->
+    <div class="print-only pdf-container">
+        <!-- Cabecera PDF -->
+        <div class="pdf-header">
+            <div>
+                <h1 class="text-3xl font-bold uppercase tracking-wide brand-font">Mentes Brillantes</h1>
+                <p class="text-blue-200 mt-1 font-medium tracking-wider text-sm">GIMNASIO EMOCIONAL</p>
+                <p class="text-white/80 text-xs font-light tracking-widest mt-0.5">SERVICIO DE COORDINACIÓN</p>
+            </div>
+            <div class="text-right">
+                <div class="text-sm text-blue-200 uppercase tracking-widest">Programación</div>
+                <div class="text-4xl font-light" id="pdf-month">FEBRERO 2026</div>
+            </div>
+        </div>
+
+        <!-- Contenido PDF -->
+        <div class="pdf-content">
+            <table class="pdf-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%">Fecha</th>
+                        <th style="width: 45%">Actividad / Horario</th>
+                        <th style="width: 15%">Modalidad</th>
+                        <th style="width: 25%; text-align: right;">Estado / Mentor</th>
+                    </tr>
+                </thead>
+                <tbody id="pdf-table-body">
+                    <!-- Filas generadas dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer PDF -->
+        <div class="pdf-footer">
+            <p>Documento generado el <span id="pdf-gen-date"></span> • Gimnasio Emocional Mentes Brillantes</p>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        // CONFIGURACIÓN GLOBAL
+        const YEAR = 2026;
+        const START_DATE = new Date(YEAR, 1, 3); // Fecha inicial aprox
+        const END_DATE = new Date(YEAR, 11, 10);
+        // Lista de festivos 2026 (Fechas en formato YYYY-MM-DD)
+        const FESTIVOS = [
+            '2026-01-01', // Año nuevo
+            '2026-01-12', // Reyes (Lun)
+            '2026-03-23', // San José (Lun)
+            '2026-04-02', // Jueves Santo
+            '2026-04-03', // Viernes Santo
+            '2026-05-01', // Día del trabajo
+            '2026-05-18', // Ascensión (Lun)
+            '2026-06-08', // Corpus Christi (Lun)
+            '2026-06-15', // Sagrado Corazón (Lun)
+            '2026-06-29', // San Pedro y San Pablo (Lun)
+            '2026-07-20', // Independencia (Lun)
+            '2026-08-07', // Batalla Boyacá (Vie)
+            '2026-08-17', // Asunción (Lun)
+            '2026-10-12', // Raza (Lun)
+            '2026-11-02', // Todos los Santos (Lun)
+            '2026-11-16', // Indep Cartagena (Lun)
+            '2026-12-08', // Inmaculada (Mar)
+            '2026-12-25'  // Navidad (Vie)
+        ];
+        const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const NOMBRES_DIAS = { 1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado', 0: 'Domingo' };
+        const ABBR_DIAS = { 1: 'LUN', 2: 'MAR', 3: 'MIÉ', 4: 'JUE', 5: 'VIE', 6: 'SÁB', 0: 'DOM' };
+
+        const DEFAULT_CONFIG_BASE = {
+            1: { activo: false, actividad: '', horario: '', esVirtualSiempre: false },
+            2: { activo: true, actividad: 'Sala de reducción del ego', horario: '5:30 PM - 6:45 PM', esVirtualSiempre: false },
+            3: { activo: false, actividad: '', horario: '', esVirtualSiempre: false },
+            4: { activo: true, actividad: 'Entrega de pasos', horario: '5:30 PM - 6:45 PM', esVirtualSiempre: false },
+            5: { activo: false, actividad: '', horario: '', esVirtualSiempre: false },
+            6: { activo: true, actividad: 'Sala de reducción del ego + Entrega de pasos', horario: '10:00 AM - 12:00 PM', esVirtualSiempre: true },
+            0: { activo: false, actividad: '', horario: '', esVirtualSiempre: false }
+        };
+
+        let mesSeleccionado = 1; // Febrero por defecto
+        let mentores = JSON.parse(localStorage.getItem('mentores_2026_list')) || [];
+        let asignaciones = JSON.parse(localStorage.getItem('mentores_2026_assignments')) || {};
+        // NUEVA CONFIGURACIÓN: Guardar personalizaciones de días/horas
+        let configuracionDias = JSON.parse(localStorage.getItem('mentores_2026_config_dias')) || {};
+        let configuracionBase = JSON.parse(localStorage.getItem('mentores_2026_config_base')) || DEFAULT_CONFIG_BASE;
+
+        window.onload = () => {
+            renderMeses();
+            renderTodo();
+            document.getElementById('pdf-gen-date').innerText = new Date().toLocaleDateString();
+        };
+
+        function getISOWeek(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        }
+        function formatDateKey(date) { return date.toISOString().split('T')[0]; }
+
+        // --- FUNCIONES CONFIGURACIÓN BASE GLOBAL ---
+        function abrirModalConfigBase() {
+            renderConfigBaseUI();
+            document.getElementById('modal-config-base').classList.remove('hidden');
+        }
+
+        function cerrarModalConfigBase() {
+            document.getElementById('modal-config-base').classList.add('hidden');
+        }
+
+        function toggleDiaConfig(day) {
+            const isChecked = document.getElementById(`cb-activo-${day}`).checked;
+            const campos = document.getElementById(`campos-dia-${day}`);
+            const contenedor = document.getElementById(`row-dia-${day}`);
+            if (isChecked) {
+                campos.classList.remove('hidden');
+                contenedor.classList.remove('bg-slate-50', 'opacity-60');
+                contenedor.classList.add('bg-slate-100', 'border-slate-300');
+            } else {
+                campos.classList.add('hidden');
+                contenedor.classList.add('bg-slate-50', 'opacity-60');
+                contenedor.classList.remove('bg-slate-100', 'border-slate-300');
+            }
+        }
+
+        function renderConfigBaseUI() {
+            const container = document.getElementById('config-base-container');
+            container.innerHTML = '';
+            const diasOrden = [1, 2, 3, 4, 5, 6, 0]; // Lunes a Domingo
+
+            diasOrden.forEach(day => {
+                const d = configuracionBase[day] || DEFAULT_CONFIG_BASE[day];
+                container.innerHTML += `
+                    <div id="row-dia-${day}" class="border border-slate-200 rounded-xl p-4 mb-4 transition-all ${d.activo ? 'bg-slate-100 border-slate-300' : 'bg-slate-50 opacity-60'}">
+                        <div class="flex items-center gap-3 mb-2 cursor-pointer" onclick="document.getElementById('cb-activo-${day}').click()">
+                            <input type="checkbox" id="cb-activo-${day}" ${d.activo ? 'checked' : ''} onclick="event.stopPropagation()" onchange="toggleDiaConfig(${day})" class="w-5 h-5 text-slate-800 rounded focus:ring-slate-800 cursor-pointer">
+                            <label class="font-bold text-slate-800 text-lg cursor-pointer">${NOMBRES_DIAS[day]}</label>
+                        </div>
+                        <div id="campos-dia-${day}" class="${d.activo ? 'block' : 'hidden'} space-y-4 pl-8 pt-2">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Actividad Base</label>
+                                    <input type="text" id="cb-actividad-${day}" value="${d.actividad}" placeholder="Ej: Sala de reducción del ego" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Horario Base</label>
+                                    <input type="text" id="cb-horario-${day}" value="${d.horario}" placeholder="Ej: 5:30 PM - 6:45 PM" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-500 outline-none">
+                                </div>
+                            </div>
+                            <label class="flex items-center gap-2 text-sm font-semibold text-slate-700 bg-white p-2 rounded-lg border border-slate-200 inline-flex cursor-pointer hover:bg-slate-50">
+                                <input type="checkbox" id="cb-virtual-${day}" ${d.esVirtualSiempre ? 'checked' : ''} class="text-purple-600 focus:ring-purple-500 rounded cursor-pointer">
+                                <span class="text-purple-700"><i class="fas fa-laptop text-xs mr-1"></i> Forzar SIEMPRE Modalidad Virtual</span>
+                            </label>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function guardarConfigBase() {
+            const diasOrden = [1, 2, 3, 4, 5, 6, 0];
+            let nuevaConfig = {};
+            diasOrden.forEach(day => {
+                nuevaConfig[day] = {
+                    activo: document.getElementById(`cb-activo-${day}`).checked,
+                    actividad: document.getElementById(`cb-actividad-${day}`).value.trim(),
+                    horario: document.getElementById(`cb-horario-${day}`).value.trim(),
+                    esVirtualSiempre: document.getElementById(`cb-virtual-${day}`).checked
+                };
+            });
+            configuracionBase = nuevaConfig;
+            localStorage.setItem('mentores_2026_config_base', JSON.stringify(configuracionBase));
+            cerrarModalConfigBase();
+            showToast('Configuración Global Guardada');
+            renderTodo();
+        }
+
+        function renderMeses() {
+            const container = document.getElementById('meses-container');
+            const scrollLeft = container.scrollLeft;
+            container.innerHTML = '';
+            MESES.forEach((mes, i) => {
+                if (i < 1) return; // Saltamos Enero
+                const btn = document.createElement('button');
+                btn.className = `whitespace-nowrap px-5 py-2 rounded-full text-sm font-bold transition-all ${i === mesSeleccionado ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`;
+                btn.innerText = mes;
+                btn.onclick = () => {
+                    mesSeleccionado = i;
+                    renderTodo();
+                    renderMeses();
+                };
+                container.appendChild(btn);
+            });
+            container.scrollLeft = scrollLeft;
+        }
+
+        function renderTodo() {
+            document.getElementById('titulo-mes-actual').innerText = MESES[mesSeleccionado];
+            document.getElementById('pdf-month').innerText = `${MESES[mesSeleccionado].toUpperCase()} 2026`;
+
+            const gridWeb = document.getElementById('grid-web');
+            const pdfTableBody = document.getElementById('pdf-table-body');
+
+            gridWeb.innerHTML = '';
+            pdfTableBody.innerHTML = '';
+
+            let current = new Date(START_DATE);
+            let eventosMes = [];
+
+            while (current <= END_DATE) {
+                if (current.getMonth() === mesSeleccionado) {
+                    const day = current.getDay();
+                    const confBase = configuracionBase[day];
+
+                    if (confBase && confBase.activo) {
+                        const dateKey = formatDateKey(current);
+
+                        let dayName = NOMBRES_DIAS[day];
+                        let actividad = confBase.actividad;
+                        let horario = confBase.horario;
+
+                        // SOBREESCRITURA PERSONALIZADA (Si existe para esa fecha)
+                        if (configuracionDias[dateKey]) {
+                            actividad = configuracionDias[dateKey].actividad;
+                            horario = configuracionDias[dateKey].horario;
+                        }
+
+                        eventosMes.push({
+                            dateObj: new Date(current),
+                            dateKey: dateKey,
+                            dayName: dayName,
+                            dayNum: current.getDate(),
+                            isoWeek: getISOWeek(current),
+                            isHoliday: FESTIVOS.includes(dateKey),
+                            assignedTo: asignaciones[dateKey] || '',
+                            actividad: actividad,
+                            horario: horario,
+                            dayIdx: day,
+                            esVirtualSiempre: confBase.esVirtualSiempre
+                        });
+                    }
+                }
+                current.setDate(current.getDate() + 1);
+            }
+
+            if (eventosMes.length === 0) {
+                gridWeb.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">Sin programación</div>`;
+                pdfTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-slate-400 italic">No hay programación para este mes</td></tr>`;
+                return;
+            }
+
+            eventosMes.forEach(ev => {
+                const isEven = ev.isoWeek % 2 === 0;
+
+                let isVirtual = isEven;
+                if (ev.esVirtualSiempre) isVirtual = true; // Aplica config base global
+
+                const modalLabel = isVirtual ? 'Virtual' : 'Presencial';
+                const modClass = isVirtual ? 'bg-purple-50 text-purple-700 border-purple-100' : 'bg-green-50 text-green-700 border-green-100';
+
+                // --- RENDER WEB ---
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-xl p-5 border shadow-sm hover:shadow-md transition-shadow ${ev.isHoliday ? 'border-red-100 bg-red-50/50' : 'border-slate-100'}`;
+
+                const timeIcon = ev.dayIdx === 6 ? 'fa-clock text-orange-400' : 'fa-clock text-blue-400';
+
+                // Escapamos comillas para evitar que se rompa el HTML del botón editar
+                const safeActividad = ev.actividad.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                const safeHorario = ev.horario.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+                let webContent = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="text-center bg-slate-100 rounded-lg p-2 min-w-[3.5rem]">
+                            <div class="text-xs font-bold text-slate-400 uppercase">${ev.dayName.substring(0, 3)}</div>
+                            <div class="text-xl font-bold text-slate-800">${ev.dayNum}</div>
+                        </div>
+                        <div class="text-right">
+                             ${ev.isHoliday
+                        ? `<span class="px-2 py-1 rounded bg-red-100 text-red-600 text-xs font-bold">FESTIVO</span>`
+                        : `<span class="px-2 py-1 rounded text-xs font-bold border ${modClass}">${modalLabel}</span>`
+                    }
+                             <div class="text-[10px] text-slate-400 mt-1">Sem ${ev.isoWeek}</div>
+                        </div>
+                    </div>
+                    <div class="mb-3 relative group">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-slate-700 leading-tight text-sm pr-6 ${ev.isHoliday ? 'line-through opacity-50' : ''}">${ev.actividad}</h4>
+                            ${!ev.isHoliday ? `<button onclick="abrirModalEdicion('${ev.dateKey}', '${safeActividad}', '${safeHorario}')" class="text-slate-300 hover:text-indigo-600 transition-colors absolute right-0 top-0 opacity-0 group-hover:opacity-100 bg-white rounded-full p-1" title="Editar Actividad/Horario"><i class="fas fa-edit"></i></button>` : ''}
+                        </div>
+                        ${!ev.isHoliday ? `<div class="mt-1 flex items-center text-xs text-slate-500"><i class="far ${timeIcon} mr-1"></i> ${ev.horario}</div>` : ''}
+                    </div>
+                `;
+                if (!ev.isHoliday) {
+                    let selectHtml = `
+                        <div class="relative pt-2 border-t border-slate-50">
+                            <select onchange="guardar('${ev.dateKey}', this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer appearance-none">
+                                <option value="">Seleccionar Mentor...</option>
+                                ${mentores.map(m => `<option value="${m}" ${m === ev.assignedTo ? 'selected' : ''}>${m}</option>`).join('')}
+                            </select>
+                            <div class="absolute right-3 top-5 pointer-events-none text-slate-400"><i class="fas fa-chevron-down text-xs"></i></div>
+                        </div>
+                    `;
+                    if (mentores.length === 0) {
+                        selectHtml = `<button onclick="toggleModal(true)" class="w-full py-2 border border-dashed border-blue-300 text-blue-500 rounded-lg text-sm hover:bg-blue-50 transition-colors mt-2">+ Añadir Mentores</button>`;
+                    }
+                    webContent += selectHtml;
+                } else {
+                    webContent += `<div class="text-xs text-red-500 italic text-center py-2 border-t border-red-100 mt-2">No programable</div>`;
+                }
+                card.innerHTML = webContent;
+                gridWeb.appendChild(card);
+
+                // --- RENDER PDF ---
+                const tr = document.createElement('tr');
+                let pdfBadge = '';
+                let pdfStatus = '';
+
+                if (ev.isHoliday) {
+                    pdfBadge = '<span class="text-red-500 font-bold text-xs">FESTIVO</span>';
+                    pdfStatus = '<span class="text-red-400 italic text-xs">Cancelado</span>';
+                } else {
+                    pdfBadge = `<span class="pdf-badge ${isVirtual ? 'pdf-badge-virtual' : 'pdf-badge-presencial'}">${modalLabel}</span>`;
+                    pdfStatus = ev.assignedTo
+                        ? `<span class="font-bold text-slate-800 text-sm">${ev.assignedTo}</span>`
+                        : `<span class="text-slate-400 italic text-xs border border-dashed border-slate-300 px-2 py-1 rounded">Disponible</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td>
+                        <div class="font-bold text-lg text-slate-700">${ev.dayNum}</div>
+                        <div class="text-xs font-bold text-slate-400 uppercase">${ev.dayName}</div>
+                    </td>
+                    <td>
+                        <div class="font-bold text-slate-800 text-sm ${ev.isHoliday ? 'line-through opacity-50' : ''}">${ev.actividad}</div>
+                        ${!ev.isHoliday ? `<div class="text-xs text-slate-500 mt-1"><i class="far fa-clock text-[9px] mr-1"></i>${ev.horario}</div>` : ''}
+                    </td>
+                    <td>${pdfBadge}<div class="text-[9px] text-slate-400 mt-1">Sem ${ev.isoWeek}</div></td>
+                    <td style="text-align: right;">${pdfStatus}</td>
+                `;
+                pdfTableBody.appendChild(tr);
+            });
+        }
+
+        // --- FUNCIONES PARA EDITAR DÍAS Y HORARIOS ---
+
+        function abrirModalEdicion(dateKey, actividad, horario) {
+            document.getElementById('edit-datekey').value = dateKey;
+            document.getElementById('edit-actividad').value = actividad;
+            document.getElementById('edit-horario').value = horario;
+
+            // Mostrar el botón de restaurar si el día fue editado previamente
+            if (configuracionDias[dateKey]) {
+                document.getElementById('btn-restaurar-dia').classList.remove('hidden');
+            } else {
+                document.getElementById('btn-restaurar-dia').classList.add('hidden');
+            }
+
+            document.getElementById('modal-editar-dia').classList.remove('hidden');
+        }
+
+        function cerrarModalEdicion() {
+            document.getElementById('modal-editar-dia').classList.add('hidden');
+        }
+
+        function guardarEdicionDia(e) {
+            e.preventDefault();
+            const dateKey = document.getElementById('edit-datekey').value;
+            const actividad = document.getElementById('edit-actividad').value.trim();
+            const horario = document.getElementById('edit-horario').value.trim();
+
+            if (actividad && horario) {
+                configuracionDias[dateKey] = { actividad, horario };
+                localStorage.setItem('mentores_2026_config_dias', JSON.stringify(configuracionDias));
+
+                cerrarModalEdicion();
+                showToast('Actividad modificada');
+                renderTodo();
+            }
+        }
+
+        function restaurarDiaPorDefecto() {
+            const dateKey = document.getElementById('edit-datekey').value;
+            if (configuracionDias[dateKey]) {
+                delete configuracionDias[dateKey];
+                localStorage.setItem('mentores_2026_config_dias', JSON.stringify(configuracionDias));
+            }
+            cerrarModalEdicion();
+            showToast('Día restaurado al valor por defecto');
+            renderTodo();
+        }
+
+        // --- FUNCIONES DE BACKUP ---
+
+        function descargarBackup() {
+            const datosBackup = {
+                fechaCopia: new Date().toISOString(),
+                mentores: mentores,
+                asignaciones: asignaciones,
+                configuracionDias: configuracionDias, // Se incluye la info editada
+                configuracionBase: configuracionBase  // Se incluye la base global
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(datosBackup));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "backup_mentes_brillantes_" + new Date().toISOString().slice(0, 10) + ".json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            showToast('Copia descargada');
+        }
+
+        function triggerCargarBackup() {
+            document.getElementById('input-backup').click();
+        }
+
+        function cargarBackup(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.mentores && data.asignaciones) {
+                        if (confirm('¿Estás seguro? Esto reemplazará los datos actuales por los de la copia de seguridad.')) {
+                            mentores = data.mentores;
+                            asignaciones = data.asignaciones;
+                            configuracionDias = data.configuracionDias || {}; // Cargar configuraciones extra si existen
+                            configuracionBase = data.configuracionBase || DEFAULT_CONFIG_BASE; // Cargar base global
+
+                            localStorage.setItem('mentores_2026_list', JSON.stringify(mentores));
+                            localStorage.setItem('mentores_2026_assignments', JSON.stringify(asignaciones));
+                            localStorage.setItem('mentores_2026_config_dias', JSON.stringify(configuracionDias));
+                            localStorage.setItem('mentores_2026_config_base', JSON.stringify(configuracionBase));
+
+                            renderMentoresUI();
+                            renderTodo();
+                            showToast('¡Datos restaurados!');
+                        }
+                    } else {
+                        alert('Error: El archivo no parece ser una copia de seguridad válida.');
+                    }
+                } catch (err) {
+                    alert('Error al leer el archivo.');
+                }
+            };
+            reader.readAsText(file);
+            input.value = '';
+        }
+
+        // --- FUNCIONES INTERACTIVAS MENTORES ---
+
+        function guardar(key, val) {
+            if (!val) delete asignaciones[key];
+            else asignaciones[key] = val;
+            localStorage.setItem('mentores_2026_assignments', JSON.stringify(asignaciones));
+            showToast('Guardado');
+            renderTodo();
+        }
+        function agregarMentor(e) {
+            e.preventDefault();
+            const input = document.getElementById('nuevo-mentor-input');
+            const nombre = input.value.trim();
+            if (nombre && !mentores.includes(nombre)) {
+                mentores.push(nombre);
+                localStorage.setItem('mentores_2026_list', JSON.stringify(mentores));
+                input.value = '';
+                renderMentoresUI();
+                renderTodo();
+                showToast('Mentor añadido');
+            }
+        }
+        function toggleModal(show) {
+            const modal = document.getElementById('modal-mentores');
+            if (show) {
+                modal.classList.remove('hidden');
+                renderMentoresUI();
+                document.getElementById('nuevo-mentor-input').focus();
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+        function renderMentoresUI() {
+            const list = document.getElementById('lista-mentores-ui');
+            list.innerHTML = mentores.map(m => `
+                <div class="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100 mb-2">
+                    <span class="font-medium text-slate-700">${m}</span>
+                    <button onclick="borrarMentor('${m}')" class="text-slate-400 hover:text-red-500"><i class="fas fa-trash"></i></button>
+                </div>
+            `).join('') || '<p class="text-center text-slate-400 text-sm italic">Sin mentores</p>';
+        }
+        function borrarMentor(m) {
+            if (confirm('¿Eliminar a ' + m + '?')) {
+                mentores = mentores.filter(x => x !== m);
+                localStorage.setItem('mentores_2026_list', JSON.stringify(mentores));
+                renderMentoresUI();
+                renderTodo();
+            }
+        }
+        function showToast(msg) {
+            const t = document.getElementById('toast-msg');
+            const txt = document.getElementById('toast-text');
+            txt.innerText = msg;
+            t.classList.remove('hidden');
+            t.classList.add('flex');
+            setTimeout(() => t.classList.add('hidden'), 3000);
+        }
+
+        // --- FUNCIONES EXPORTACIÓN IMAGEN ---
+
+        async function descargarImagen(modo) {
+            const flyerList = document.getElementById('flyer-list');
+            document.getElementById('flyer-month').innerText = MESES[mesSeleccionado];
+            flyerList.innerHTML = '';
+
+            let current = new Date(START_DATE);
+            while (current <= END_DATE) {
+                if (current.getMonth() === mesSeleccionado) {
+                    const day = current.getDay();
+                    const confBase = configuracionBase[day];
+
+                    if (confBase && confBase.activo) {
+                        const dateKey = formatDateKey(current);
+                        const isoWeek = getISOWeek(current);
+                        const isHoliday = FESTIVOS.includes(dateKey);
+                        const isEven = isoWeek % 2 === 0;
+
+                        let isVirtual = isEven;
+                        if (confBase.esVirtualSiempre) isVirtual = true;
+
+                        const modalLabel = isVirtual ? 'Virtual' : 'Presencial';
+                        const assignedTo = asignaciones[dateKey];
+
+                        let actividad = confBase.actividad;
+                        let horario = confBase.horario;
+                        let dayAbbr = ABBR_DIAS[day];
+
+                        // SOBREESCRITURA PERSONALIZADA
+                        if (configuracionDias[dateKey]) {
+                            actividad = configuracionDias[dateKey].actividad;
+                            horario = configuracionDias[dateKey].horario;
+                        }
+
+                        let rowClass = isHoliday ? 'festivo' : (isVirtual ? 'virtual' : 'presencial');
+                        let statusBadge = '';
+                        if (isHoliday) statusBadge = `<span class="text-red-500 font-bold italic text-sm">CANCELADO</span>`;
+                        else if (modo === 'dispo') statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned">OCUPADO</span>` : `<span class="flyer-status status-badge-ok">DISPONIBLE</span>`;
+                        else statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned"><i class="fas fa-user-check mr-1"></i> ${assignedTo}</span>` : `<span class="flyer-status status-badge-empty">SIN ASIGNAR</span>`;
+
+                        flyerList.innerHTML += `
+                            <div class="flyer-row ${rowClass}">
+                                <div class="flyer-date">
+                                    <div class="text-3xl font-bold text-slate-800">${current.getDate()}</div>
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${dayAbbr}</div>
+                                </div>
+                                <div class="flyer-content">
+                                    <div class="text-slate-800 font-bold text-lg leading-tight ${isHoliday ? 'line-through opacity-50' : ''}">${actividad}</div>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        ${!isHoliday ? `<span class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 rounded"><i class="far fa-clock text-[10px] mr-1"></i>${horario}</span>` : ''}
+                                        <span class="text-[10px] font-semibold uppercase ${isVirtual ? 'text-purple-600' : 'text-green-600'}">${!isHoliday ? modalLabel : ''}</span>
+                                    </div>
+                                </div>
+                                <div>${statusBadge}</div>
+                            </div>
+                        `;
+                    }
+                }
+                current.setDate(current.getDate() + 1);
+            }
+            showToast('Generando imagen...');
+            const element = document.getElementById("capture-target");
+            try {
+                const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+                const link = document.createElement('a');
+                link.download = `Programacion_${MESES[mesSeleccionado]}_${modo}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                showToast('¡Imagen descargada!');
+            } catch (err) { alert("Error al generar imagen. Usa Chrome/Edge."); }
+        }
+
+        // --- FUNCIONES EXPORTACIÓN WHATSAPP ---
+
+        function copiarParaWhatsapp() {
+            const mesNombre = MESES[mesSeleccionado];
+            let texto = `*🗓️ PROGRAMACIÓN ${mesNombre.toUpperCase()} 2026*\nGimnasio Emocional Mentes Brillantes\n\n`;
+            let current = new Date(START_DATE);
+            let contador = 0;
+            while (current <= END_DATE) {
+                if (current.getMonth() === mesSeleccionado) {
+                    const day = current.getDay();
+                    const confBase = configuracionBase[day];
+
+                    if (confBase && confBase.activo) {
+                        const dateKey = formatDateKey(current);
+                        const isHoliday = FESTIVOS.includes(dateKey);
+                        const isoWeek = getISOWeek(current);
+                        const isEven = isoWeek % 2 === 0;
+
+                        let isVirtual = isEven;
+                        if (confBase.esVirtualSiempre) isVirtual = true;
+
+                        const modLabel = isVirtual ? '(Virtual)' : '(Presencial)';
+                        const asignado = asignaciones[dateKey];
+
+                        let actividad = confBase.actividad;
+                        let horario = confBase.horario;
+                        let dayLabel = ABBR_DIAS[day];
+                        // Solo capitalizar primera letra para WhatsApp
+                        dayLabel = dayLabel.charAt(0) + dayLabel.slice(1).toLowerCase();
+
+                        // SOBREESCRITURA PERSONALIZADA
+                        if (configuracionDias[dateKey]) {
+                            actividad = configuracionDias[dateKey].actividad;
+                            horario = configuracionDias[dateKey].horario;
+                        }
+
+                        let statusIcon = '✅';
+                        if (isHoliday) statusIcon = '🚫 Festivo';
+                        else if (asignado) statusIcon = `👤 ${asignado}`;
+
+                        texto += `*${dayLabel} ${current.getDate()}* [${horario}]: ${actividad} ${!isHoliday ? modLabel : ''} — ${statusIcon}\n`;
+                        contador++;
+                    }
+                }
+                current.setDate(current.getDate() + 1);
+            }
+            if (contador === 0) texto += "No hay eventos programados.";
+            navigator.clipboard.writeText(texto).then(() => {
+                showToast('Copiado para WhatsApp');
+                alert('¡Listo! Texto copiado. Abre WhatsApp y pégalo.');
+            });
+        }
+    </script>
+</body>
+
+</html>
