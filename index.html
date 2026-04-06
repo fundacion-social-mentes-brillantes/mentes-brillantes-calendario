@@ -1046,35 +1046,88 @@
             document.getElementById('input-backup').click();
         }
 
-        function cargarBackup(input) {
+        async function cargarBackup(input) {
             const file = input.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function (e) {
+            reader.onload = async function (e) {
                 try {
                     const data = JSON.parse(e.target.result);
                     if (data.mentores && data.asignaciones) {
-                        if (confirm('¿Estás seguro? Esto reemplazará los datos actuales por los de la copia de seguridad.')) {
+                        if (confirm('¿Estás seguro? Esto reemplazará TOTALMENTE los datos actuales en la nube y localmente.')) {
+                            
+                            if (session) {
+                                try {
+                                    // 1. Borrar en Supabase (en el orden solicitado)
+                                    await supabaseClient.from('asignaciones').delete().neq('date_key', '0');
+                                    await supabaseClient.from('configuracion_dias').delete().neq('date_key', '0');
+                                    await supabaseClient.from('configuracion_base').delete().neq('dia', -999);
+                                    await supabaseClient.from('mentores').delete().neq('nombre', '0');
+
+                                    // 2. Restaurar Mentores
+                                    if (data.mentores.length > 0) {
+                                        const mToInsert = data.mentores.map(m => ({ nombre: m }));
+                                        const { error: e1 } = await supabaseClient.from('mentores').upsert(mToInsert);
+                                        if (e1) throw e1;
+                                    }
+
+                                    // Restaurar Asignaciones
+                                    const asigKeys = Object.keys(data.asignaciones);
+                                    if (asigKeys.length > 0) {
+                                        const aToInsert = asigKeys.map(k => ({ date_key: k, mentor_nombre: data.asignaciones[k] }));
+                                        const { error: e2 } = await supabaseClient.from('asignaciones').upsert(aToInsert);
+                                        if (e2) throw e2;
+                                    }
+
+                                    // Restaurar Configuracion Dias
+                                    const cdData = data.configuracionDias || {};
+                                    const cdKeys = Object.keys(cdData);
+                                    if (cdKeys.length > 0) {
+                                        const cdToInsert = cdKeys.map(k => ({ date_key: k, actividad: cdData[k].actividad, horario: cdData[k].horario }));
+                                        const { error: e3 } = await supabaseClient.from('configuracion_dias').upsert(cdToInsert);
+                                        if (e3) throw e3;
+                                    }
+
+                                    // Restaurar Configuracion Base
+                                    const cbData = data.configuracionBase || DEFAULT_CONFIG_BASE;
+                                    const cbKeys = Object.keys(cbData);
+                                    if (cbKeys.length > 0) {
+                                        const cbToInsert = cbKeys.map(k => ({ dia: parseInt(k), activo: cbData[k].activo, actividad: cbData[k].actividad, horario: cbData[k].horario, esVirtualSiempre: cbData[k].esVirtualSiempre }));
+                                        const { error: e4 } = await supabaseClient.from('configuracion_base').upsert(cbToInsert);
+                                        if (e4) throw e4;
+                                    }
+                                } catch (sbErr) {
+                                    console.error('Error Supabase Restore:', sbErr);
+                                    alert('Fallo al sincronizar con Supabase. Restauración cancelada.');
+                                    return;
+                                }
+                            } else {
+                                alert('Debes iniciar sesión como administrador para restaurar copias de seguridad en la nube.');
+                                return;
+                            }
+
+                            // 5. Todo salió bien, actualizar RAM, localStorage y UI
                             mentores = data.mentores;
                             asignaciones = data.asignaciones;
-                            configuracionDias = data.configuracionDias || {}; // Cargar configuraciones extra si existen
-                            configuracionBase = data.configuracionBase || DEFAULT_CONFIG_BASE; // Cargar base global
+                            configuracionDias = data.configuracionDias || {};
+                            configuracionBase = data.configuracionBase || DEFAULT_CONFIG_BASE;
 
                             localStorage.setItem('mentores_2026_list', JSON.stringify(mentores));
                             localStorage.setItem('mentores_2026_assignments', JSON.stringify(asignaciones));
                             localStorage.setItem('mentores_2026_config_dias', JSON.stringify(configuracionDias));
                             localStorage.setItem('mentores_2026_config_base', JSON.stringify(configuracionBase));
 
-                            renderMentoresUI();
+                            if(typeof renderMentoresUI === 'function') renderMentoresUI();
                             renderTodo();
-                            showToast('¡Datos restaurados!');
+                            showToast('Copia restaurada y sincronizada');
                         }
                     } else {
                         alert('Error: El archivo no parece ser una copia de seguridad válida.');
                     }
                 } catch (err) {
-                    alert('Error al leer el archivo.');
+                    console.error(err);
+                    alert('Error al leer el archivo JSON.');
                 }
             };
             reader.readAsText(file);
