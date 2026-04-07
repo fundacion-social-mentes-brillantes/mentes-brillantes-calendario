@@ -659,8 +659,14 @@
             const { data: { session: currentSession } } = await supabaseClient.auth.getSession();
             session = currentSession;
             
-            supabaseClient.auth.onAuthStateChange((_event, curSession) => {
+            supabaseClient.auth.onAuthStateChange(async (_event, curSession) => {
                 session = curSession;
+                if (session) {
+                    await fetchSolicitudes();
+                } else {
+                    const res = await supabaseClient.from('solicitudes_publicas').select('date_key');
+                    if (!res.error && res.data) solicitudesPendientes = res.data;
+                }
                 verificarEstadoBotonesAdmin();
                 renderTodo();
             });
