@@ -673,6 +673,38 @@
         </div>
     </div>
 
+    <!-- MODAL EXITO APARTAR -->
+    <div id="modal-apartar-exito" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all">
+            <div class="bg-blue-600 p-5 text-center text-white">
+                <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+                    <i class="fas fa-check text-3xl"></i>
+                </div>
+                <h3 class="font-bold text-xl">¡Solicitud Enviada!</h3>
+                <p class="text-blue-100 text-xs mt-1">Tu fecha está siendo revisada</p>
+            </div>
+            <div class="p-6">
+                <p class="text-sm font-medium text-slate-600 mb-2 italic">Paso final: Copia y envía este mensaje al grupo</p>
+                <div class="bg-slate-50 border-2 border-dashed border-blue-200 p-4 rounded-xl mb-4 text-sm font-mono text-slate-700 leading-normal select-all cursor-pointer hover:bg-white transition-colors" id="exito-mensaje-texto" onclick="copiarMensajeExito()">
+                </div>
+                <div class="grid grid-cols-1 gap-2">
+                    <button onclick="copiarMensajeExito()" class="w-full py-3 bg-blue-100 text-blue-700 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-200 transition-colors">
+                        <i class="far fa-copy text-lg"></i> Copiar Mensaje
+                    </button>
+                    <button id="btn-share-exito" onclick="compartirMensajeExito()" class="hidden w-full py-3 bg-indigo-500 text-white rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-indigo-600 shadow-md transition-colors">
+                        <i class="fas fa-share-alt text-lg"></i> Compartir
+                    </button>
+                    <button onclick="abrirGrupoWhatsapp()" class="w-full py-3 bg-green-500 text-white rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-green-600 shadow-md transition-colors">
+                        <i class="fab fa-whatsapp text-lg"></i> Abrir Grupo de WhatsApp
+                    </button>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-4 border-t border-slate-100 text-center">
+                <button onclick="cerrarModalExito()" class="text-slate-400 hover:text-slate-600 text-xs font-semibold uppercase tracking-wider">Cerrar y volver al calendario</button>
+            </div>
+        </div>
+    </div>
+
     <!-- SCRIPTS -->
     <script>
         // CONFIGURACIÓN GLOBAL
@@ -1570,7 +1602,8 @@
             const nombreSelect = document.getElementById('apartar-nombre').value;
             if(!nombreSelect) { alert("Por favor, selecciona tu nombre."); return; }
 
-            const wppBaseMsg = `Tomo ${apartarState.fechaTexto} ${apartarState.actividad.toLowerCase()} - ${nombreSelect}`;
+            const wppMsg = `*Hola, solicito apartar:*\n\n📅 *Fecha:* ${apartarState.fechaTexto}\n🎯 *Actividad:* ${apartarState.actividad}\n⏰ *Horario:* ${apartarState.horario}\n📍 *Modalidad:* ${apartarState.modalidad}\n👤 *Nombre:* ${nombreSelect}`;
+
             const toInsert = {
                 date_key: apartarState.dateKey,
                 fecha_texto: apartarState.fechaTexto,
@@ -1578,7 +1611,7 @@
                 horario: apartarState.horario,
                 modalidad: apartarState.modalidad,
                 solicitante_nombre: nombreSelect,
-                mensaje_whatsapp: wppBaseMsg,
+                mensaje_whatsapp: wppMsg,
                 estado: 'pendiente'
             };
 
@@ -1589,21 +1622,26 @@
             try {
                 const { error } = await supabaseClient.from('solicitudes_apartado').insert(toInsert);
                 if (error) { 
-                    if(error.code === '23505' || error.message.includes('unique')) { throw new Error('Ya existe una solicitud pendiente para esta fecha. Refresca la ventana.'); }
+                    if(error.code === '23505' || error.message.includes('unique')) { throw new Error('Ya existe una solicitud pendiente para esta fecha.'); }
                     throw error; 
                 }
 
-                solicitudesPendientes.push(toInsert); // Actualizar UI optimista
+                solicitudesPendientes.push(toInsert);
                 verificarEstadoBotonesAdmin();
                 renderTodo();
 
-                const copiado = await navigator.clipboard.writeText(wppBaseMsg).then(()=>true).catch(()=>false);
-                if(copiado) showToast('Mensaje copiado. Pégalo en el grupo de WhatsApp.');
-                else alert('No se pudo copiar automáticamente. Por favor escribe este mensaje en el grupo:\n\n' + wppBaseMsg);
-
-                // Abrir modal o link whatsapp
-                window.open('https://chat.whatsapp.com/EodgViFsvmyK0dRnGatDyK?mode=gi_t', '_blank');
+                // Lógica de éxito nueva
                 cerrarModalApartar();
+                
+                const txtMsg = document.getElementById('exito-mensaje-texto');
+                txtMsg.innerText = wppMsg;
+                
+                // Mostrar botón compartir si está disponible
+                if (navigator.share) {
+                    document.getElementById('btn-share-exito').classList.remove('hidden');
+                }
+
+                document.getElementById('modal-apartar-exito').classList.remove('hidden');
 
             } catch(e) {
                 console.error(e);
@@ -1612,6 +1650,33 @@
                 btn.innerHTML = prevBtnText;
                 btn.disabled = false;
             }
+        }
+
+        function copiarMensajeExito() {
+            const texto = document.getElementById('exito-mensaje-texto').innerText;
+            navigator.clipboard.writeText(texto).then(() => {
+                showToast('¡Mensaje copiado!');
+            }).catch(() => {
+                alert('No se pudo copiar automáticamente. Por favor selecciónalo manualmente en pantalla.');
+            });
+        }
+
+        function compartirMensajeExito() {
+            const texto = document.getElementById('exito-mensaje-texto').innerText;
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Mi solicitud de apartado',
+                    text: texto
+                }).catch(err => console.log('Error sharing', err));
+            }
+        }
+
+        function abrirGrupoWhatsapp() {
+            window.open('https://chat.whatsapp.com/EodgViFsvmyK0dRnGatDyK', '_blank');
+        }
+
+        function cerrarModalExito() {
+            document.getElementById('modal-apartar-exito').classList.add('hidden');
         }
 
         // --- FLUJO SOLICITUDES ADMIN ---
