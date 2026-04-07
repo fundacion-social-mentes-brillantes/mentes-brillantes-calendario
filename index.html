@@ -755,23 +755,11 @@
         let session = null;
         let solicitudesPendientes = [];
         let apartarState = null;
-        let pendingAssignmentSaves = 0;
 
         // --- SUPABASE CONFIG ---
         const SUPABASE_URL = 'https://vasjxzgdgafrlnxjqbqf.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_UDQuVLPLSBw4WRwnEXpoZg_HYSiziDc';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        function updatePendingAssignmentSaves(delta) {
-            pendingAssignmentSaves = Math.max(0, pendingAssignmentSaves + delta);
-        }
-
-        window.addEventListener('beforeunload', function (e) {
-            if (pendingAssignmentSaves > 0) {
-                e.preventDefault();
-                e.returnValue = '';
-            }
-        });
 
         async function initData() {
             const { data: { session: currentSession } } = await supabaseClient.auth.getSession();
@@ -1141,12 +1129,12 @@
                     if (session) {
                         let selectHtml = `
                             <div class="relative pt-2 border-t border-slate-50">
-                                <select onchange="guardar(this, '${ev.dateKey}')" data-prev-value="${ev.assignedTo}" title="Los cambios se guardan automáticamente" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer appearance-none">
+                                <select onchange="confirmarCambioAsignacion(this, '${ev.dateKey}')" data-prev-value="${ev.assignedTo}" title="Debes confirmar el cambio" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer appearance-none">
                                     <option value="">Seleccionar Mentor...</option>
                                     ${mentores.map(m => `<option value="${m}" ${m === ev.assignedTo ? 'selected' : ''}>${m}</option>`).join('')}
                                 </select>
                                 <div class="absolute right-3 top-5 pointer-events-none text-slate-400"><i class="fas fa-chevron-down text-xs"></i></div>
-                                <div id="save-status-${ev.dateKey}" class="mt-2 text-[11px] text-slate-400">Los cambios se guardan automáticamente</div>
+                                <div id="save-status-${ev.dateKey}" class="mt-2 text-[11px] text-slate-400">Debes confirmar el cambio</div>
                             </div>
                         `;
                         if (mentores.length === 0) {
@@ -1405,10 +1393,20 @@
 
         // --- FUNCIONES INTERACTIVAS MENTORES ---
 
-        async function guardar(selectEl, key) {
+        async function confirmarCambioAsignacion(selectEl, key) {
             const val = selectEl.value;
             const valorAnterior = selectEl.dataset.prevValue || '';
             const statusEl = document.getElementById(`save-status-${key}`);
+            const nombreSeleccionado = val || 'sin asignación';
+
+            if (val === valorAnterior) {
+                return;
+            }
+
+            if (!confirm(`¿Estás seguro de asignar esta fecha a ${nombreSeleccionado}?`)) {
+                selectEl.value = valorAnterior;
+                return;
+            }
 
             selectEl.disabled = true;
             selectEl.title = 'Guardando...';
@@ -1416,7 +1414,6 @@
                 statusEl.textContent = 'Guardando...';
                 statusEl.className = 'mt-2 text-[11px] text-amber-600';
             }
-            updatePendingAssignmentSaves(1);
 
             try {
                 if (!val) {
@@ -1429,26 +1426,26 @@
                     asignaciones[key] = val;
                 }
                 selectEl.dataset.prevValue = val;
+                await refreshDataFromCloud();
                 showToast('Guardado en la nube');
                 renderTodo();
             } catch (err) {
                 console.error(err);
                 selectEl.value = valorAnterior;
-                selectEl.title = 'Los cambios se guardan automáticamente';
+                selectEl.title = 'Debes confirmar el cambio';
                 if (statusEl) {
                     statusEl.textContent = 'No se pudo guardar. Se restauró el valor anterior.';
                     statusEl.className = 'mt-2 text-[11px] text-red-600';
                 }
                 alert("Error: No se pudo sincronizar la asignación con la nube. Inténtalo de nuevo.");
             } finally {
-                updatePendingAssignmentSaves(-1);
                 selectEl.disabled = false;
                 if (!statusEl || !document.body.contains(statusEl)) return;
                 if (statusEl.className.includes('text-amber-600')) {
-                    statusEl.textContent = 'Los cambios se guardan automáticamente';
+                    statusEl.textContent = 'Debes confirmar el cambio';
                     statusEl.className = 'mt-2 text-[11px] text-slate-400';
                 }
-                selectEl.title = 'Los cambios se guardan automáticamente';
+                selectEl.title = 'Debes confirmar el cambio';
             }
         }
         async function agregarMentor(e) {
