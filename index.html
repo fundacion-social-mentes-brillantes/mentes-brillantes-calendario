@@ -748,11 +748,10 @@
 
         const __currM = new Date().getMonth();
         let mesSeleccionado = (__currM === 0) ? 1 : __currM; // Febrero u hoy
-        let mentores = JSON.parse(localStorage.getItem('mentores_2026_list')) || [];
-        let asignaciones = JSON.parse(localStorage.getItem('mentores_2026_assignments')) || {};
-        // NUEVA CONFIGURACIÓN: Guardar personalizaciones de días/horas
-        let configuracionDias = JSON.parse(localStorage.getItem('mentores_2026_config_dias')) || {};
-        let configuracionBase = JSON.parse(localStorage.getItem('mentores_2026_config_base')) || DEFAULT_CONFIG_BASE;
+        let mentores = [];
+        let asignaciones = {};
+        let configuracionDias = {};
+        let configuracionBase = DEFAULT_CONFIG_BASE;
         let session = null;
         let solicitudesPendientes = [];
         let apartarState = null;
@@ -785,53 +784,17 @@
                     const res = await supabaseClient.from('solicitudes_apartado').select('*').eq('estado', 'pendiente').order('created_at', { ascending: false });
                     solData = res.data; solErr = res.error;
                 } else {
-                    // Vista mínima: solo date_key de pendientes
                     const res = await supabaseClient.from('solicitudes_publicas').select('date_key');
                     solData = res.data; solErr = res.error;
                 }
-                if (!solErr && solData) {
-                    solicitudesPendientes = solData;
-                }
+                if (!solErr && solData) solicitudesPendientes = solData;
 
-                // Mentores
-                const { data: mentoresData, error: err1 } = await supabaseClient.from('mentores').select('*');
-                if (!err1 && mentoresData) {
-                    mentores = mentoresData.map(m => m.nombre);
-                    localStorage.setItem('mentores_2026_list', JSON.stringify(mentores));
-                }
-
-                // Asignaciones
-                const { data: asigData, error: err2 } = await supabaseClient.from('asignaciones').select('*');
-                if (!err2 && asigData) {
-                    asignaciones = {};
-                    asigData.forEach(row => { asignaciones[row.date_key] = row.mentor_nombre; });
-                    localStorage.setItem('mentores_2026_assignments', JSON.stringify(asignaciones));
-                }
-
-                // Config Días
-                const { data: confDiasData, error: err3 } = await supabaseClient.from('configuracion_dias').select('*');
-                if (!err3 && confDiasData) {
-                    configuracionDias = {};
-                    confDiasData.forEach(row => { configuracionDias[row.date_key] = { actividad: row.actividad, horario: row.horario }; });
-                    localStorage.setItem('mentores_2026_config_dias', JSON.stringify(configuracionDias));
-                }
-
-                // Config Base
-                const { data: confBaseData, error: err4 } = await supabaseClient.from('configuracion_base').select('*');
-                if (!err4 && confBaseData && confBaseData.length > 0) {
-                    configuracionBase = {};
-                    confBaseData.forEach(row => {
-                        configuracionBase[row.dia] = {
-                            activo: row.activo,
-                            actividad: row.actividad,
-                            horario: row.horario,
-                            esVirtualSiempre: row.esVirtualSiempre
-                        };
-                    });
-                    localStorage.setItem('mentores_2026_config_base', JSON.stringify(configuracionBase));
-                }
+                // Sync total desde la nube
+                await refreshDataFromCloud();
+                
             } catch (err) {
-                console.error("Error cargando Supabase, usando localStorage", err);
+                console.error("Error crítico de conexión con la nube:", err);
+                alert("No se pudo conectar con el servidor. Verifica tu conexión.");
             }
             verificarEstadoBotonesAdmin();
             renderMeses();
@@ -925,6 +888,35 @@
         }
         function formatDateKey(date) { return date.toISOString().split('T')[0]; }
 
+        async function refreshDataFromCloud() {
+            // Mentores
+            const { data: mData } = await supabaseClient.from('mentores').select('*');
+            if (mData) mentores = mData.map(m => m.nombre);
+
+            // Asignaciones
+            const { data: aData } = await supabaseClient.from('asignaciones').select('*');
+            if (aData) {
+                asignaciones = {};
+                aData.forEach(r => { asignaciones[r.date_key] = r.mentor_nombre; });
+            }
+
+            // Config Días
+            const { data: cdData } = await supabaseClient.from('configuracion_dias').select('*');
+            if (cdData) {
+                configuracionDias = {};
+                cdData.forEach(r => { configuracionDias[r.date_key] = { actividad: r.actividad, horario: r.horario }; });
+            }
+
+            // Config Base
+            const { data: cbData } = await supabaseClient.from('configuracion_base').select('*');
+            if (cbData && cbData.length > 0) {
+                configuracionBase = {};
+                cbData.forEach(r => {
+                    configuracionBase[r.dia] = { activo: r.activo, actividad: r.actividad, horario: r.horario, esVirtualSiempre: r.esVirtualSiempre };
+                });
+            }
+        }
+
         // --- FUNCIONES CONFIGURACIÓN BASE GLOBAL ---
         function abrirModalConfigBase() {
             renderConfigBaseUI();
@@ -995,9 +987,6 @@
                     esVirtualSiempre: document.getElementById(`cb-virtual-${day}`).checked
                 };
             });
-            configuracionBase = nuevaConfig;
-            localStorage.setItem('mentores_2026_config_base', JSON.stringify(configuracionBase));
-            
             try {
                 const upserts = Object.keys(nuevaConfig).map(day => ({
                     dia: parseInt(day),
@@ -1006,9 +995,16 @@
                     horario: nuevaConfig[day].horario,
                     esVirtualSiempre: nuevaConfig[day].esVirtualSiempre
                 }));
-                await supabaseClient.from('configuracion_base').upsert(upserts);
+                const { error } = await supabaseClient.from('configuracion_base').upsert(upserts);
+                if (error) throw error;
+
+                configuracionBase = nuevaConfig;
+                cerrarModalConfigBase();
+                showToast('Configuración Global Guardada');
+                renderTodo();
             } catch (e) {
                 console.error(e);
+                alert("No se pudo sincronizar la configuración base con la nube.");
             }
 
             cerrarModalConfigBase();
@@ -1228,31 +1224,44 @@
             const horario = document.getElementById('edit-horario').value.trim();
 
             if (actividad && horario) {
-                configuracionDias[dateKey] = { actividad, horario };
-                localStorage.setItem('mentores_2026_config_dias', JSON.stringify(configuracionDias));
-                try { await supabaseClient.from('configuracion_dias').upsert({ date_key: dateKey, actividad, horario }); } catch(err){}
-
-                cerrarModalEdicion();
-                showToast('Actividad modificada');
-                renderTodo();
+                try {
+                    const { error } = await supabaseClient.from('configuracion_dias').upsert({ date_key: dateKey, actividad, horario });
+                    if (error) throw error;
+                    
+                    configuracionDias[dateKey] = { actividad, horario };
+                    cerrarModalEdicion();
+                    showToast('Actividad modificada en la nube');
+                    renderTodo();
+                } catch(err) {
+                    console.error(err);
+                    alert("Error: No se pudo sincronizar la modificación con la nube.");
+                }
             }
         }
 
         async function restaurarDiaPorDefecto() {
             const dateKey = document.getElementById('edit-datekey').value;
             if (configuracionDias[dateKey]) {
-                delete configuracionDias[dateKey];
-                localStorage.setItem('mentores_2026_config_dias', JSON.stringify(configuracionDias));
-                try { await supabaseClient.from('configuracion_dias').delete().eq('date_key', dateKey); } catch(err){}
+                try {
+                    const { error } = await supabaseClient.from('configuracion_dias').delete().eq('date_key', dateKey);
+                    if (error) throw error;
+                    
+                    delete configuracionDias[dateKey];
+                    cerrarModalEdicion();
+                    showToast('Día restaurado en la nube');
+                    renderTodo();
+                } catch (err) {
+                    console.error(err);
+                    alert("Error: No se pudo restaurar el día en la nube.");
+                }
             }
-            cerrarModalEdicion();
-            showToast('Día restaurado al valor por defecto');
-            renderTodo();
         }
 
         // --- FUNCIONES DE BACKUP ---
 
         async function descargarBackup(tipo = 'pendientes') {
+            showToast('Sincronizando antes de exportar...');
+            await refreshDataFromCloud();
             let solicitudesGuardar = solicitudesPendientes;
             let solicitudesHistorial = null;
             
@@ -1361,21 +1370,16 @@
                                 return;
                             }
 
-                            // 5. Todo salió bien, actualizar RAM, localStorage y UI
+                            // 5. Todo salió bien, actualizar RAM y UI
                             mentores = data.mentores;
                             asignaciones = data.asignaciones;
                             configuracionDias = data.configuracionDias || {};
                             configuracionBase = data.configuracionBase || DEFAULT_CONFIG_BASE;
                             solicitudesPendientes = data.solicitudes || [];
 
-                            localStorage.setItem('mentores_2026_list', JSON.stringify(mentores));
-                            localStorage.setItem('mentores_2026_assignments', JSON.stringify(asignaciones));
-                            localStorage.setItem('mentores_2026_config_dias', JSON.stringify(configuracionDias));
-                            localStorage.setItem('mentores_2026_config_base', JSON.stringify(configuracionBase));
-
                             if(typeof renderMentoresUI === 'function') renderMentoresUI();
                             renderTodo();
-                            showToast('Copia restaurada y sincronizada');
+                            showToast('Copia restaurada y sincronizada en la nube');
                         }
                     } else {
                         alert('Error: El archivo no parece ser una copia de seguridad válida.');
@@ -1392,29 +1396,41 @@
         // --- FUNCIONES INTERACTIVAS MENTORES ---
 
         async function guardar(key, val) {
-            if (!val) {
-                delete asignaciones[key];
-                try { await supabaseClient.from('asignaciones').delete().eq('date_key', key); } catch(err){}
-            } else {
-                asignaciones[key] = val;
-                try { await supabaseClient.from('asignaciones').upsert({ date_key: key, mentor_nombre: val }); } catch(err){}
+            try {
+                if (!val) {
+                    const { error } = await supabaseClient.from('asignaciones').delete().eq('date_key', key);
+                    if (error) throw error;
+                    delete asignaciones[key];
+                } else {
+                    const { error } = await supabaseClient.from('asignaciones').upsert({ date_key: key, mentor_nombre: val });
+                    if (error) throw error;
+                    asignaciones[key] = val;
+                }
+                showToast('Guardado en la nube');
+                renderTodo();
+            } catch (err) {
+                console.error(err);
+                alert("Error: No se pudo sincronizar la asignación con la nube. Inténtalo de nuevo.");
             }
-            localStorage.setItem('mentores_2026_assignments', JSON.stringify(asignaciones));
-            showToast('Guardado');
-            renderTodo();
         }
         async function agregarMentor(e) {
             e.preventDefault();
             const input = document.getElementById('nuevo-mentor-input');
             const nombre = input.value.trim();
             if (nombre && !mentores.includes(nombre)) {
-                mentores.push(nombre);
-                localStorage.setItem('mentores_2026_list', JSON.stringify(mentores));
-                try { await supabaseClient.from('mentores').insert({ nombre: nombre }); } catch(err){}
-                input.value = '';
-                renderMentoresUI();
-                renderTodo();
-                showToast('Mentor añadido');
+                try {
+                    const { error } = await supabaseClient.from('mentores').insert({ nombre: nombre });
+                    if (error) throw error;
+                    
+                    mentores.push(nombre);
+                    input.value = '';
+                    renderMentoresUI();
+                    renderTodo();
+                    showToast('Mentor añadido a la nube');
+                } catch(err) {
+                    console.error(err);
+                    alert("Error: No se pudo añadir el mentor a la nube.");
+                }
             }
         }
         function toggleModal(show) {
@@ -1438,11 +1454,18 @@
         }
         async function borrarMentor(m) {
             if (confirm('¿Eliminar a ' + m + '?')) {
-                mentores = mentores.filter(x => x !== m);
-                localStorage.setItem('mentores_2026_list', JSON.stringify(mentores));
-                try { await supabaseClient.from('mentores').delete().eq('nombre', m); } catch(err){}
-                renderMentoresUI();
-                renderTodo();
+                try {
+                    const { error } = await supabaseClient.from('mentores').delete().eq('nombre', m);
+                    if (error) throw error;
+                    
+                    mentores = mentores.filter(x => x !== m);
+                    renderMentoresUI();
+                    renderTodo();
+                    showToast('Mentor eliminado de la nube');
+                } catch(err) {
+                    console.error(err);
+                    alert("Error: No se pudo eliminar el mentor en la nube.");
+                }
             }
         }
         function showToast(msg) {
@@ -1457,6 +1480,9 @@
         // --- FUNCIONES EXPORTACIÓN IMAGEN ---
 
         async function descargarImagen(modo) {
+            showToast('Refrescando datos de la nube...');
+            await refreshDataFromCloud();
+            
             const flyerList = document.getElementById('flyer-list');
             document.getElementById('flyer-month').innerText = MESES[mesSeleccionado];
             flyerList.innerHTML = '';
