@@ -132,6 +132,81 @@
             border: 1px solid #93c5fd;
         }
 
+        /* --- MOBILE UX SURGICAL ADJUSTMENTS --- */
+        @media (max-width: 640px) {
+            header {
+                padding: 0.5rem 0.75rem !important;
+            }
+            .header-logo h1 {
+                font-size: 1.1rem !important;
+            }
+            .header-logo p {
+                font-size: 8px !important;
+            }
+            .header-actions {
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 0.4rem !important;
+                width: 100% !important;
+                padding: 0.25rem 0 !important;
+            }
+            /* Botones más grandes para dedos */
+            .header-actions button, 
+            .header-actions .group > button {
+                padding: 0.6rem 0.8rem !important;
+                font-size: 0.75rem !important;
+                border-radius: 10px !important;
+            }
+            /* Menús desplegables para móvil (evitar problemas de hover) */
+            .group-hover\:block {
+                position: fixed !important;
+                top: auto !important;
+                bottom: 20px !important;
+                left: 10px !important;
+                right: 10px !important;
+                width: auto !important;
+                z-index: 100 !important;
+            }
+            .group:active .group-hover\:block,
+            .group:focus-within .group-hover\:block {
+                display: block !important;
+            }
+            /* Garantizar que el dropdown se vea si se remueve la clase hidden por JS */
+            .animate-fade-in:not(.hidden) {
+                display: block !important;
+            }
+            .group-hover\:block > div {
+                box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+            }
+            /* Chips de meses más cómodos */
+            .month-chip {
+                padding: 0.6rem 1.2rem !important;
+                font-size: 0.85rem !important;
+                min-width: fit-content !important;
+                flex-shrink: 0 !important;
+            }
+            #meses-container {
+                mask-image: linear-gradient(to right, black 90%, transparent 100%);
+            }
+            /* Tarjetas de calendario */
+            #grid-web {
+                gap: 0.75rem !important;
+            }
+            #grid-web > div {
+                transform: none !important; /* Quitar escalas de hover en móvil */
+            }
+            /* Modales en móvil */
+            .modal-content {
+                max-height: 85vh !important;
+                width: 95% !important;
+                margin: 0 auto !important;
+            }
+            /* Personalización UI para "Apartar" modal en móvil */
+            #modal-apartar .modal-header {
+                border-radius: 20px 20px 0 0 !important;
+            }
+        }
+
         /* --- ESTILOS DE IMPRESIÓN PDF --- */
         @media print {
             @page {
@@ -730,6 +805,21 @@
             renderMeses();
             renderTodo();
             document.getElementById('pdf-gen-date').innerText = new Date().toLocaleDateString();
+
+            // Interacción quirúrgica para dropdowns en móvil
+            document.querySelectorAll('.header-actions .group').forEach(group => {
+                group.addEventListener('click', function(e) {
+                    if (window.innerWidth <= 640) {
+                        const dropdown = this.querySelector('.animate-fade-in');
+                        if (dropdown && !e.target.closest('.animate-fade-in')) {
+                            const isHidden = dropdown.classList.contains('hidden');
+                            document.querySelectorAll('.header-actions .animate-fade-in').forEach(d => d.classList.add('hidden'));
+                            if (isHidden) dropdown.classList.remove('hidden');
+                            else dropdown.classList.add('hidden');
+                        }
+                    }
+                });
+            });
         }
 
         // --- RUTINAS DE AUTENTICACIÓN ---
@@ -901,7 +991,8 @@
             MESES.forEach((mes, i) => {
                 if (i < 1) return; // Saltamos Enero
                 const btn = document.createElement('button');
-                btn.className = `whitespace-nowrap px-5 py-2 rounded-full text-sm font-bold transition-all ${i === mesSeleccionado ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`;
+                // Clase month-chip para ajustes móviles
+                btn.className = `month-chip whitespace-nowrap px-5 py-2 rounded-full text-sm font-bold transition-all ${i === mesSeleccionado ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`;
                 btn.innerText = mes;
                 btn.onclick = () => {
                     mesSeleccionado = i;
