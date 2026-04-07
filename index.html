@@ -1024,7 +1024,7 @@
                         if (ev.assignedTo) {
                             labelHtml = `<div class="mt-2 pt-2 border-t border-slate-50 text-sm font-semibold text-slate-800 flex items-center"><i class="fas fa-user-check text-green-500 mr-2"></i> <span class="truncate">${ev.assignedTo}</span></div>`;
                         } else {
-                            const pendingSol = solicitudesPendientes.find(s => s.date_key === ev.dateKey && s.estado === 'pendiente');
+                            const pendingSol = solicitudesPendientes.find(s => s.date_key === ev.dateKey);
                             if (pendingSol) {
                                 labelHtml = `<div class="mt-2 pt-2 border-t border-slate-50 text-sm font-semibold text-amber-600 flex items-center"><i class="fas fa-hourglass-half mr-2"></i> En revisión</div>`;
                             } else {
