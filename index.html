@@ -917,6 +917,16 @@
             }
         }
 
+        async function refreshAsignacionesFromCloud() {
+            const { data, error } = await supabaseClient.from('asignaciones').select('*');
+            if (error) throw error;
+
+            asignaciones = {};
+            if (data) {
+                data.forEach(r => { asignaciones[r.date_key] = r.mentor_nombre; });
+            }
+        }
+
         // --- FUNCIONES CONFIGURACIÓN BASE GLOBAL ---
         function abrirModalConfigBase() {
             renderConfigBaseUI();
@@ -1426,7 +1436,6 @@
                     asignaciones[key] = val;
                 }
                 selectEl.dataset.prevValue = val;
-                await refreshDataFromCloud();
                 showToast('Guardado en la nube');
                 renderTodo();
             } catch (err) {
@@ -1516,7 +1525,13 @@
 
         async function descargarImagen(modo) {
             showToast('Refrescando datos de la nube...');
-            await refreshDataFromCloud();
+            try {
+                await refreshAsignacionesFromCloud();
+            } catch (err) {
+                console.error(err);
+                alert("Error: No se pudieron refrescar las asignaciones desde la nube.");
+                return;
+            }
             
             const flyerList = document.getElementById('flyer-list');
             document.getElementById('flyer-month').innerText = MESES[mesSeleccionado];
