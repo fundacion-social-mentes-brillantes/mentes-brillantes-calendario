@@ -522,11 +522,11 @@
                     </button>
                     <div class="absolute right-0 top-full pt-2 w-56 hidden group-hover:block animate-fade-in">
                         <div class="bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
-                            <button onclick="descargarImagen('dispo')"
+                            <button onclick="descargarImagen('dispo')" data-image-action="true"
                                 class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 text-slate-700 border-b border-slate-50 flex items-center gap-2 hover:text-indigo-600 transition-colors">
                                 <i class="far fa-calendar text-indigo-500"></i> Imagen Disponibilidad
                             </button>
-                            <button onclick="descargarImagen('asignado')"
+                            <button onclick="descargarImagen('asignado')" data-image-action="true"
                                 class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 text-slate-700 flex items-center gap-2 hover:text-green-600 transition-colors">
                                 <i class="fas fa-user-check text-green-500"></i> Imagen Asignados
                             </button>
@@ -755,11 +755,31 @@
         let session = null;
         let solicitudesPendientes = [];
         let apartarState = null;
+        let assignmentSaveInProgress = false;
 
         // --- SUPABASE CONFIG ---
         const SUPABASE_URL = 'https://vasjxzgdgafrlnxjqbqf.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_UDQuVLPLSBw4WRwnEXpoZg_HYSiziDc';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function withTimeout(promise, ms, message) {
+            return Promise.race([
+                promise,
+                new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms))
+            ]);
+        }
+
+        function setAssignmentControlsDisabled(disabled) {
+            document.querySelectorAll('select[data-prev-value]').forEach(select => {
+                select.disabled = disabled;
+            });
+
+            document.querySelectorAll('[data-image-action]').forEach(button => {
+                button.disabled = disabled;
+                button.classList.toggle('opacity-50', disabled);
+                button.classList.toggle('cursor-not-allowed', disabled);
+            });
+        }
 
         async function initData() {
             const { data: { session: currentSession } } = await supabaseClient.auth.getSession();
@@ -918,7 +938,11 @@
         }
 
         async function refreshAsignacionesFromCloud() {
-            const { data, error } = await supabaseClient.from('asignaciones').select('*');
+            const { data, error } = await withTimeout(
+                supabaseClient.from('asignaciones').select('date_key, mentor_nombre'),
+                6000,
+                'No se pudieron refrescar las asignaciones'
+            );
             if (error) throw error;
 
             asignaciones = {};
@@ -1418,7 +1442,14 @@
                 return;
             }
 
-            selectEl.disabled = true;
+            if (assignmentSaveInProgress) {
+                selectEl.value = valorAnterior;
+                alert('Espera a que termine el guardado actual');
+                return;
+            }
+
+            assignmentSaveInProgress = true;
+            setAssignmentControlsDisabled(true);
             selectEl.title = 'Guardando...';
             if (statusEl) {
                 statusEl.textContent = 'Guardando...';
@@ -1427,11 +1458,22 @@
 
             try {
                 if (!val) {
-                    const { error } = await supabaseClient.from('asignaciones').delete().eq('date_key', key);
+                    const { error } = await withTimeout(
+                        supabaseClient.from('asignaciones').delete().eq('date_key', key),
+                        8000,
+                        'No se pudo guardar en la nube. Inténtalo de nuevo.'
+                    );
                     if (error) throw error;
                     delete asignaciones[key];
                 } else {
-                    const { error } = await supabaseClient.from('asignaciones').upsert({ date_key: key, mentor_nombre: val });
+                    const { error } = await withTimeout(
+                        supabaseClient.from('asignaciones').upsert(
+                            { date_key: key, mentor_nombre: val },
+                            { onConflict: 'date_key' }
+                        ),
+                        8000,
+                        'No se pudo guardar en la nube. Inténtalo de nuevo.'
+                    );
                     if (error) throw error;
                     asignaciones[key] = val;
                 }
@@ -1446,9 +1488,10 @@
                     statusEl.textContent = 'No se pudo guardar. Se restauró el valor anterior.';
                     statusEl.className = 'mt-2 text-[11px] text-red-600';
                 }
-                alert("Error: No se pudo sincronizar la asignación con la nube. Inténtalo de nuevo.");
+                alert("No se pudo guardar en la nube. Inténtalo de nuevo.");
             } finally {
-                selectEl.disabled = false;
+                assignmentSaveInProgress = false;
+                setAssignmentControlsDisabled(false);
                 if (!statusEl || !document.body.contains(statusEl)) return;
                 if (statusEl.className.includes('text-amber-600')) {
                     statusEl.textContent = 'Debes confirmar el cambio';
@@ -1524,12 +1567,20 @@
         // --- FUNCIONES EXPORTACIÓN IMAGEN ---
 
         async function descargarImagen(modo) {
+            if (assignmentSaveInProgress) {
+                alert('Espera a que termine el guardado actual');
+                return;
+            }
             showToast('Refrescando datos de la nube...');
             try {
-                await refreshAsignacionesFromCloud();
+                await withTimeout(
+                    refreshAsignacionesFromCloud(),
+                    6000,
+                    'No se pudieron refrescar las asignaciones'
+                );
             } catch (err) {
                 console.error(err);
-                alert("Error: No se pudieron refrescar las asignaciones desde la nube.");
+                alert(err.message || "Error: No se pudieron refrescar las asignaciones desde la nube.");
                 return;
             }
             
