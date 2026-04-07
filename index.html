@@ -403,6 +403,14 @@
                     <i class="fas fa-users-cog text-lg"></i>
                 </button>
 
+                <!-- BOTON ADMIN SOLICITUDES -->
+                <button onclick="abrirModalSolicitudes()" id="btn-solicitudes-admin"
+                    class="hidden relative p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                    title="Ver Solicitudes Pendientes">
+                    <i class="fas fa-inbox text-lg"></i>
+                    <span id="badge-solicitudes" class="absolute -top-1 -right-1 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden shadow-sm border border-white">0</span>
+                </button>
+
                 <!-- Menú Desplegable BACKUP -->
                 <div class="relative group z-30 hidden" id="btn-backup-admin">
                     <button
@@ -541,6 +549,49 @@
         </div>
     </div>
 
+    <!-- MODAL SOLICITUDES ADMINISTRADOR -->
+    <div id="modal-solicitudes" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+            <div class="bg-gradient-to-r from-amber-600 to-amber-500 p-6 flex justify-between items-center text-white shrink-0">
+                <h3 class="font-bold text-xl"><i class="fas fa-inbox mr-2"></i> Solicitudes de Apartado</h3>
+                <button onclick="cerrarModalSolicitudes()" class="hover:bg-white/20 p-2 rounded-full transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto w-full flex-1" id="lista-solicitudes-ui">
+                <!-- Data inyectada -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL APARTAR (PUBLICO) -->
+    <div id="modal-apartar" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all">
+            <div class="bg-gradient-to-r from-green-600 to-emerald-500 p-5 flex justify-between items-center text-white shrink-0">
+                <h3 class="font-bold text-lg"><i class="far fa-calendar-plus mr-2"></i> Apartar Fecha</h3>
+                <button onclick="cerrarModalApartar()" class="hover:bg-white/20 p-2 rounded-full transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-5">
+                <div id="apartar-info" class="text-sm font-medium text-slate-700 mb-4 bg-slate-50 border border-slate-100 p-3 rounded-lg leading-relaxed shadow-inner">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Selecciona tu nombre</label>
+                    <select id="apartar-nombre" class="w-full bg-white border border-slate-300 text-slate-700 text-sm rounded-lg p-3 outline-none focus:ring-2 focus:ring-green-500 cursor-pointer shadow-sm">
+                        <option value="">Cargando nombres...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-4 border-t border-slate-100 flex justify-end gap-3">
+                <button onclick="cerrarModalApartar()" class="text-slate-500 hover:text-slate-700 font-medium text-sm px-3 py-2 transition-colors">Cancelar</button>
+                <button onclick="confirmarApartado()" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2">
+                    <i class="fab fa-whatsapp text-lg"></i> Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- SCRIPTS -->
     <script>
         // CONFIGURACIÓN GLOBAL
@@ -582,13 +633,16 @@
             0: { activo: false, actividad: '', horario: '', esVirtualSiempre: false }
         };
 
-        let mesSeleccionado = 1; // Febrero por defecto
+        const __currM = new Date().getMonth();
+        let mesSeleccionado = (__currM === 0) ? 1 : __currM; // Febrero u hoy
         let mentores = JSON.parse(localStorage.getItem('mentores_2026_list')) || [];
         let asignaciones = JSON.parse(localStorage.getItem('mentores_2026_assignments')) || {};
         // NUEVA CONFIGURACIÓN: Guardar personalizaciones de días/horas
         let configuracionDias = JSON.parse(localStorage.getItem('mentores_2026_config_dias')) || {};
         let configuracionBase = JSON.parse(localStorage.getItem('mentores_2026_config_base')) || DEFAULT_CONFIG_BASE;
         let session = null;
+        let solicitudesPendientes = [];
+        let apartarState = null;
 
         // --- SUPABASE CONFIG ---
         const SUPABASE_URL = 'https://vasjxzgdgafrlnxjqbqf.supabase.co';
@@ -606,6 +660,12 @@
             });
 
             try {
+                // Solicitudes
+                const { data: solData, error: solErr } = await supabaseClient.from('solicitudes_apartado').select('*').eq('estado', 'pendiente');
+                if (!solErr && solData) {
+                    solicitudesPendientes = solData;
+                }
+
                 // Mentores
                 const { data: mentoresData, error: err1 } = await supabaseClient.from('mentores').select('*');
                 if (!err1 && mentoresData) {
@@ -681,17 +741,31 @@
             const btnBgDatos = document.getElementById('btn-backup-admin');
             const loginBtnTxt = document.getElementById('txt-login-btn');
             const loginBtnIcon = document.querySelector('#btn-login-admin i');
+            const btnSolicitudes = document.getElementById('btn-solicitudes-admin');
+            const badgeSolicitudes = document.getElementById('badge-solicitudes');
 
             if (session) {
                 if (btnConfig) btnConfig.classList.remove('hidden');
                 if (btnTeam) btnTeam.classList.remove('hidden');
                 if (btnBgDatos) btnBgDatos.classList.remove('hidden');
+                if (btnSolicitudes) {
+                    btnSolicitudes.classList.remove('hidden');
+                    if (solicitudesPendientes.length > 0) {
+                        badgeSolicitudes.innerText = solicitudesPendientes.length;
+                        badgeSolicitudes.classList.remove('hidden');
+                        btnSolicitudes.classList.add('text-amber-600', 'bg-amber-50');
+                    } else {
+                        badgeSolicitudes.classList.add('hidden');
+                        btnSolicitudes.classList.remove('text-amber-600', 'bg-amber-50');
+                    }
+                }
                 if (loginBtnTxt) loginBtnTxt.innerText = "Salir";
                 if (loginBtnIcon) { loginBtnIcon.classList.remove('fa-lock'); loginBtnIcon.classList.add('fa-sign-out-alt'); }
             } else {
                 if (btnConfig) btnConfig.classList.add('hidden');
                 if (btnTeam) btnTeam.classList.add('hidden');
                 if (btnBgDatos) btnBgDatos.classList.add('hidden');
+                if (btnSolicitudes) btnSolicitudes.classList.add('hidden');
                 if (loginBtnTxt) loginBtnTxt.innerText = "Admin";
                 if (loginBtnIcon) { loginBtnIcon.classList.add('fa-lock'); loginBtnIcon.classList.remove('fa-sign-out-alt'); }
             }
@@ -931,9 +1005,19 @@
                         }
                         webContent += selectHtml;
                     } else {
-                        // MODO SOLO LECTURA
-                        const labelAsignado = ev.assignedTo ? `<div class="mt-2 pt-2 border-t border-slate-50 text-sm font-semibold text-slate-800 flex items-center"><i class="fas fa-user-check text-green-500 mr-2"></i> ${ev.assignedTo}</div>` : `<div class="mt-2 pt-2 border-t border-slate-50 text-sm italic text-slate-400">Sin asignar</div>`;
-                        webContent += labelAsignado;
+                        // MODO PUBLICO O APARTADO
+                        let labelHtml = '';
+                        if (ev.assignedTo) {
+                            labelHtml = `<div class="mt-2 pt-2 border-t border-slate-50 text-sm font-semibold text-slate-800 flex items-center"><i class="fas fa-user-check text-green-500 mr-2"></i> <span class="truncate">${ev.assignedTo}</span></div>`;
+                        } else {
+                            const pendingSol = solicitudesPendientes.find(s => s.date_key === ev.dateKey && s.estado === 'pendiente');
+                            if (pendingSol) {
+                                labelHtml = `<div class="mt-2 pt-2 border-t border-slate-50 text-sm font-semibold text-amber-600 flex items-center"><i class="fas fa-hourglass-half mr-2"></i> En revisión</div>`;
+                            } else {
+                                labelHtml = `<button onclick="abrirModalApartar('${ev.dateKey}', '${ev.dayNum} de ${ev.dayName.toLowerCase()}', '${safeActividad}', '${safeHorario}', '${modalLabel}')" class="w-full mt-2 py-2 border border-green-200 text-green-600 rounded-lg text-sm font-bold hover:bg-green-50 transition-colors shadow-sm focus:ring-2 focus:ring-green-400 outline-none">Apartar</button>`;
+                            }
+                        }
+                        webContent += labelHtml;
                     }
                 } else {
                     webContent += `<div class="text-xs text-red-500 italic text-center py-2 border-t border-red-100 mt-2">No programable</div>`;
@@ -1029,8 +1113,9 @@
                 fechaCopia: new Date().toISOString(),
                 mentores: mentores,
                 asignaciones: asignaciones,
-                configuracionDias: configuracionDias, // Se incluye la info editada
-                configuracionBase: configuracionBase  // Se incluye la base global
+                configuracionDias: configuracionDias,
+                configuracionBase: configuracionBase,
+                solicitudes: solicitudesPendientes
             };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(datosBackup));
             const downloadAnchorNode = document.createElement('a');
@@ -1063,6 +1148,7 @@
                                     await supabaseClient.from('asignaciones').delete().neq('date_key', '0');
                                     await supabaseClient.from('configuracion_dias').delete().neq('date_key', '0');
                                     await supabaseClient.from('configuracion_base').delete().neq('dia', -999);
+                                    await supabaseClient.from('solicitudes_apartado').delete().neq('id', '00000000-0000-0000-0000-000000000000');
                                     await supabaseClient.from('mentores').delete().neq('nombre', '0');
 
                                     // 2. Restaurar Mentores
@@ -1097,6 +1183,17 @@
                                         const { error: e4 } = await supabaseClient.from('configuracion_base').upsert(cbToInsert);
                                         if (e4) throw e4;
                                     }
+                                    // Restaurar Solicitudes
+                                    if (data.solicitudes && data.solicitudes.length > 0) {
+                                        const solToInsert = data.solicitudes.map(s => ({
+                                            id: s.id, created_at: s.created_at, date_key: s.date_key,
+                                            fecha_texto: s.fecha_texto, actividad: s.actividad, horario: s.horario,
+                                            modalidad: s.modalidad, solicitante_nombre: s.solicitante_nombre,
+                                            mensaje_whatsapp: s.mensaje_whatsapp, estado: s.estado
+                                        }));
+                                        const { error: e5 } = await supabaseClient.from('solicitudes_apartado').upsert(solToInsert);
+                                        if (e5) throw e5;
+                                    }
                                 } catch (sbErr) {
                                     console.error('Error Supabase Restore:', sbErr);
                                     alert('Fallo al sincronizar con Supabase. Restauración cancelada.');
@@ -1112,6 +1209,7 @@
                             asignaciones = data.asignaciones;
                             configuracionDias = data.configuracionDias || {};
                             configuracionBase = data.configuracionBase || DEFAULT_CONFIG_BASE;
+                            solicitudesPendientes = data.solicitudes || [];
 
                             localStorage.setItem('mentores_2026_list', JSON.stringify(mentores));
                             localStorage.setItem('mentores_2026_assignments', JSON.stringify(asignaciones));
@@ -1323,6 +1421,132 @@
                 showToast('Copiado para WhatsApp');
                 alert('¡Listo! Texto copiado. Abre WhatsApp y pégalo.');
             });
+        }
+        // --- FLUJO APARTAR FECHAS PUBLICO ---
+        function abrirModalApartar(dateKey, fechaTexto, actividad, horario, modalidad) {
+            apartarState = { dateKey, fechaTexto, actividad, horario, modalidad };
+            const infoText = `Estás a punto de solicitar <b>${actividad}</b> el <b>${fechaTexto}</b> en el horario de <b>${horario}</b> (${modalidad}).`;
+            document.getElementById('apartar-info').innerHTML = infoText;
+            
+            const selectDiv = document.getElementById('apartar-nombre');
+            selectDiv.innerHTML = '<option value="">Selecciona tu nombre...</option>';
+            mentores.forEach(m => { selectDiv.innerHTML += `<option value="${m}">${m}</option>`; });
+            
+            document.getElementById('modal-apartar').classList.remove('hidden');
+        }
+
+        function cerrarModalApartar() {
+            apartarState = null;
+            document.getElementById('modal-apartar').classList.add('hidden');
+        }
+
+        async function confirmarApartado() {
+            if(!apartarState) return;
+            const nombreSelect = document.getElementById('apartar-nombre').value;
+            if(!nombreSelect) { alert("Por favor, selecciona tu nombre."); return; }
+
+            const wppBaseMsg = `Tomo ${apartarState.fechaTexto} ${apartarState.actividad.toLowerCase()} - ${nombreSelect}`;
+            const toInsert = {
+                date_key: apartarState.dateKey,
+                fecha_texto: apartarState.fechaTexto,
+                actividad: apartarState.actividad,
+                horario: apartarState.horario,
+                modalidad: apartarState.modalidad,
+                solicitante_nombre: nombreSelect,
+                mensaje_whatsapp: wppBaseMsg,
+                estado: 'pendiente'
+            };
+
+            const prevBtnText = event.currentTarget.innerHTML;
+            event.currentTarget.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Solicitando...';
+            event.currentTarget.disabled = true;
+
+            try {
+                const { error } = await supabaseClient.from('solicitudes_apartado').insert(toInsert);
+                if (error) { 
+                    if(error.code === '23505') { throw new Error('Ya existe una solicitud pendiente para esta fecha. Refresca la ventana.'); }
+                    throw error; 
+                }
+
+                solicitudesPendientes.push(toInsert); // Actualizar UI optimista
+                verificarEstadoBotonesAdmin();
+                renderTodo();
+
+                const copiado = await navigator.clipboard.writeText(wppBaseMsg).then(()=>true).catch(()=>false);
+                if(copiado) showToast('Mensaje copiado. Pégalo en el grupo de WhatsApp.');
+                else alert('No se pudo copiar automáticamente. Por favor escribe este mensaje en el grupo:\n\n' + wppBaseMsg);
+
+                // Abrir modal o link whatsapp
+                window.open('https://chat.whatsapp.com/EodgViFsvmyK0dRnGatDyK?mode=gi_t', '_blank');
+                cerrarModalApartar();
+
+            } catch(e) {
+                console.error(e);
+                alert(e.message || "Error al solicitar. Inténtalo de nuevo.");
+            } finally {
+                if(document.getElementById('modal-apartar') && !document.getElementById('modal-apartar').classList.contains('hidden')){
+                    const btns = document.getElementById('modal-apartar').querySelectorAll('button');
+                    btns[btns.length-1].innerHTML = prevBtnText;
+                    btns[btns.length-1].disabled = false;
+                }
+            }
+        }
+
+        // --- FLUJO SOLICITUDES ADMIN ---
+        async function fetchSolicitudes() {
+            const { data, error } = await supabaseClient.from('solicitudes_apartado').select('*').eq('estado', 'pendiente').order('created_at', { ascending: false });
+            if(!error && data) solicitudesPendientes = data;
+            verificarEstadoBotonesAdmin();
+        }
+
+        async function abrirModalSolicitudes() {
+            await fetchSolicitudes();
+            const uiLista = document.getElementById('lista-solicitudes-ui');
+            if(solicitudesPendientes.length === 0) {
+                uiLista.innerHTML = `<div class="text-center py-10 text-slate-400 italic">No hay solicitudes pendientes</div>`;
+            } else {
+                uiLista.innerHTML = solicitudesPendientes.map(s => {
+                    const dateObj = new Date(s.created_at);
+                    const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    return `
+                    <div class="border border-slate-200 rounded-xl p-4 mb-4 hover:border-amber-300 transition-colors shadow-sm">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-lg flex items-center"><i class="fas fa-user-circle text-amber-500 mr-2"></i> ${s.solicitante_nombre}</h4>
+                                <p class="text-sm text-slate-500 flex items-center mt-1"><i class="far fa-calendar-alt w-4 h-4 mr-1"></i> ${s.fecha_texto}</p>
+                                <p class="text-sm text-slate-500 flex items-center"><i class="fas fa-tag w-4 h-4 mr-1"></i> ${s.actividad} (${s.modalidad})</p>
+                                <p class="text-xs text-slate-400 mt-2"><i class="far fa-clock"></i> Solicitado el: ${formattedDate}</p>
+                                <div class="bg-slate-50 p-2 text-xs rounded border mt-2 font-mono text-slate-600 break-all cursor-pointer hover:bg-slate-100" onclick="navigator.clipboard.writeText('${s.mensaje_whatsapp}'); showToast('Copiado');" title="Click para copiar mensaje">
+                                    "${s.mensaje_whatsapp}" <i class="far fa-copy float-right mt-0.5"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 md:mt-0 flex gap-2">
+                                <button onclick="adminAtenderSolicitud('${s.id}')" class="bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-2 rounded font-bold text-sm transition-colors" title="Marcar como atendida o resuelta"><i class="fas fa-check"></i> Atendida</button>
+                                <button onclick="adminRechazarSolicitud('${s.id}')" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-2 rounded font-bold text-sm transition-colors" title="Rechazar y borrar"><i class="fas fa-times"></i> Rechazar</button>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+            document.getElementById('modal-solicitudes').classList.remove('hidden');
+        }
+
+        function cerrarModalSolicitudes() {
+            document.getElementById('modal-solicitudes').classList.add('hidden');
+            renderTodo();
+        }
+
+        async function adminAtenderSolicitud(id) {
+            await supabaseClient.from('solicitudes_apartado').update({ estado: 'atendida' }).eq('id', id);
+            await abrirModalSolicitudes();
+        }
+
+        async function adminRechazarSolicitud(id) {
+            if(confirm('¿Rechazar esta solicitud? El día volverá a estar libre.')) {
+                await supabaseClient.from('solicitudes_apartado').update({ estado: 'rechazada' }).eq('id', id);
+                await abrirModalSolicitudes();
+            }
         }
     </script>
 </body>
