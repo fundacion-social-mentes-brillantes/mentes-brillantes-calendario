@@ -755,6 +755,7 @@
         let solicitudesPendientes = [];
         let apartarState = null;
         let assignmentSaveInProgress = false;
+        const LOCAL_CACHE_KEY = 'mb_calendario_cloud_snapshot_v1';
 
         // --- SUPABASE CONFIG ---
         const SUPABASE_URL = 'https://vasjxzgdgafrlnxjqbqf.supabase.co';
@@ -766,6 +767,89 @@
                 promise,
                 new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms))
             ]);
+        }
+
+        function classifySupabaseError(error) {
+            const rawMessage = String(error?.message || error?.details || error?.hint || '').toLowerCase();
+            const errorCode = String(error?.code || error?.status || '');
+
+            if (
+                rawMessage.includes('failed to fetch') ||
+                rawMessage.includes('err_name_not_resolved') ||
+                rawMessage.includes('networkerror') ||
+                rawMessage.includes('network request failed') ||
+                rawMessage.includes('load failed') ||
+                rawMessage.includes('dns')
+            ) return 'network';
+
+            if (
+                rawMessage.includes('invalid login credentials') ||
+                rawMessage.includes('invalid credentials') ||
+                rawMessage.includes('email not confirmed') ||
+                errorCode === '400' ||
+                errorCode === '401'
+            ) return 'invalid_credentials';
+
+            if (rawMessage.includes('auth')) return 'auth';
+
+            if (
+                rawMessage.includes('row-level security') ||
+                rawMessage.includes('permission denied') ||
+                rawMessage.includes('postgrest') ||
+                errorCode === '42501'
+            ) return 'postgrest';
+
+            return 'unknown';
+        }
+
+        function logSupabaseError(context, error) {
+            const kind = classifySupabaseError(error);
+            const prefixes = {
+                network: '[DNS/Network]',
+                auth: '[Supabase auth error]',
+                postgrest: '[PostgREST/RLS error]',
+                invalid_credentials: '[Credenciales inválidas]',
+                unknown: '[Supabase error]'
+            };
+            console.error(`${prefixes[kind] || prefixes.unknown} ${context}`, error);
+            return kind;
+        }
+
+        function getLocalSnapshot() {
+            try {
+                const raw = localStorage.getItem(LOCAL_CACHE_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (error) {
+                console.warn('[cache] No se pudo leer el snapshot local', error);
+                return null;
+            }
+        }
+
+        function saveLocalSnapshot() {
+            try {
+                localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify({
+                    mentores,
+                    asignaciones,
+                    configuracionDias,
+                    configuracionBase,
+                    savedAt: new Date().toISOString()
+                }));
+            } catch (error) {
+                console.warn('[cache] No se pudo guardar el snapshot local', error);
+            }
+        }
+
+        function hydrateFromLocalSnapshot() {
+            const snapshot = getLocalSnapshot();
+            if (!snapshot) return false;
+
+            if (Array.isArray(snapshot.mentores)) mentores = snapshot.mentores;
+            if (snapshot.asignaciones && typeof snapshot.asignaciones === 'object') asignaciones = snapshot.asignaciones;
+            if (snapshot.configuracionDias && typeof snapshot.configuracionDias === 'object') configuracionDias = snapshot.configuracionDias;
+            if (snapshot.configuracionBase && typeof snapshot.configuracionBase === 'object') {
+                configuracionBase = { ...DEFAULT_CONFIG_BASE, ...snapshot.configuracionBase };
+            }
+            return true;
         }
 
         async function timedQuery(label, queryFactory, onSuccess, timeoutMs = 5000) {
@@ -783,7 +867,7 @@
                 return { ok: true, label, duration };
             } catch (error) {
                 const duration = Math.round(performance.now() - start);
-                console.warn(`[bootstrap] ${label} falló en ${duration}ms`, error);
+                logSupabaseError(`bootstrap:${label} falló en ${duration}ms`, error);
                 showToast(`Aviso: ${label} no cargó a tiempo`);
                 return { ok: false, label, duration, error };
             }
@@ -858,7 +942,10 @@
                 timedQuery(
                     'mentores',
                     () => supabaseClient.from('mentores').select('nombre'),
-                    (data) => { mentores = data.map(m => m.nombre); },
+                    (data) => {
+                        mentores = data.map(m => m.nombre);
+                        saveLocalSnapshot();
+                    },
                     5000
                 ),
                 timedQuery(
@@ -867,6 +954,7 @@
                     (data) => {
                         asignaciones = {};
                         data.forEach(r => { asignaciones[r.date_key] = r.mentor_nombre; });
+                        saveLocalSnapshot();
                     },
                     5000
                 ),
@@ -876,6 +964,7 @@
                     (data) => {
                         configuracionDias = {};
                         data.forEach(r => { configuracionDias[r.date_key] = { actividad: r.actividad, horario: r.horario }; });
+                        saveLocalSnapshot();
                     },
                     5000
                 ),
@@ -888,6 +977,7 @@
                             data.forEach(r => {
                                 configuracionBase[r.dia] = { activo: r.activo, actividad: r.actividad, horario: r.horario, esVirtualSiempre: r.esVirtualSiempre };
                             });
+                            saveLocalSnapshot();
                         }
                     },
                     5000
@@ -899,12 +989,19 @@
 
         async function bootstrapCloudData() {
             try {
-                const sessionResult = await timedQuery(
-                    'sesion',
-                    () => supabaseClient.auth.getSession(),
-                    (data) => { session = data.session; },
-                    4000
-                );
+                const sessionStart = performance.now();
+                try {
+                    const { data, error } = await supabaseClient.auth.getSession();
+                    const duration = Math.round(performance.now() - sessionStart);
+                    console.info(`[bootstrap] sesion: ${duration}ms`);
+                    if (error) throw error;
+                    session = data?.session || null;
+                } catch (error) {
+                    const duration = Math.round(performance.now() - sessionStart);
+                    logSupabaseError(`bootstrap:sesion falló en ${duration}ms`, error);
+                    showToast('Aviso: no se pudo validar la sesión con la nube');
+                    session = null;
+                }
 
                 supabaseClient.auth.onAuthStateChange(async (_event, curSession) => {
                     session = curSession;
@@ -915,10 +1012,10 @@
 
                 await Promise.allSettled([
                     refreshDataFromCloud(),
-                    loadSolicitudesForSession(sessionResult.ok ? session : null)
+                    loadSolicitudesForSession(session)
                 ]);
             } catch (err) {
-                console.error("Error crítico de conexión con la nube:", err);
+                logSupabaseError('Error crítico de conexión con la nube', err);
                 showToast("Aviso: conexión lenta con la nube");
             } finally {
                 verificarEstadoBotonesAdmin();
@@ -927,6 +1024,7 @@
         }
 
         function initData() {
+            hydrateFromLocalSnapshot();
             renderMeses();
             renderTodo();
             document.getElementById('pdf-gen-date').innerText = new Date().toLocaleDateString();
@@ -948,13 +1046,21 @@
             e.preventDefault();
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) {
-                alert('Credenciales incorrectas');
-            } else {
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) throw error;
                 document.getElementById('modal-login').classList.add('hidden');
                 document.getElementById('login-password').value = '';
                 showToast('Sesión iniciada');
+            } catch (error) {
+                const kind = logSupabaseError('login admin', error);
+                if (kind === 'network') {
+                    alert('No se pudo conectar con el servidor de autenticación.');
+                } else if (kind === 'invalid_credentials') {
+                    alert('Credenciales incorrectas');
+                } else {
+                    alert('No se pudo iniciar sesión en este momento.');
+                }
             }
         }
 
@@ -1005,16 +1111,23 @@
         function formatDateKey(date) { return date.toISOString().split('T')[0]; }
 
         async function refreshAsignacionesFromCloud() {
-            const { data, error } = await withTimeout(
-                supabaseClient.from('asignaciones').select('date_key, mentor_nombre'),
-                6000,
-                'No se pudieron refrescar las asignaciones'
-            );
-            if (error) throw error;
+            try {
+                const { data, error } = await withTimeout(
+                    supabaseClient.from('asignaciones').select('date_key, mentor_nombre'),
+                    6000,
+                    'No se pudieron refrescar las asignaciones'
+                );
+                if (error) throw error;
 
-            asignaciones = {};
-            if (data) {
-                data.forEach(r => { asignaciones[r.date_key] = r.mentor_nombre; });
+                asignaciones = {};
+                if (data) {
+                    data.forEach(r => { asignaciones[r.date_key] = r.mentor_nombre; });
+                }
+                saveLocalSnapshot();
+                return true;
+            } catch (error) {
+                logSupabaseError('refreshAsignacionesFromCloud', error);
+                throw error;
             }
         }
 
@@ -1544,11 +1657,12 @@
                     if (error) throw error;
                     asignaciones[key] = val;
                 }
+                saveLocalSnapshot();
                 selectEl.dataset.prevValue = val;
                 showToast('Guardado en la nube');
                 renderTodo();
             } catch (err) {
-                console.error(err);
+                logSupabaseError(`guardar asignación ${key}`, err);
                 selectEl.value = valorAnterior;
                 selectEl.title = 'Debes confirmar el cambio';
                 if (statusEl) {
@@ -1639,6 +1753,7 @@
                 return;
             }
             showToast('Refrescando datos de la nube...');
+            let assignmentSource = 'cloud';
             try {
                 await withTimeout(
                     refreshAsignacionesFromCloud(),
@@ -1646,9 +1761,16 @@
                     'No se pudieron refrescar las asignaciones'
                 );
             } catch (err) {
-                console.error(err);
-                alert(err.message || "Error: No se pudieron refrescar las asignaciones desde la nube.");
-                return;
+                const snapshot = getLocalSnapshot();
+                if (snapshot?.asignaciones && Object.keys(snapshot.asignaciones).length > 0) {
+                    asignaciones = snapshot.asignaciones;
+                    assignmentSource = 'cache';
+                    showToast('Usando copia local de asignaciones');
+                } else {
+                    logSupabaseError('descargarImagen:refreshAsignaciones', err);
+                    alert(err.message || "Error: No se pudieron refrescar las asignaciones desde la nube.");
+                    return;
+                }
             }
             
             const flyerList = document.getElementById('flyer-list');
@@ -1709,7 +1831,7 @@
                 }
                 current.setDate(current.getDate() + 1);
             }
-            showToast('Generando imagen...');
+            showToast(assignmentSource === 'cache' ? 'Generando imagen con copia local...' : 'Generando imagen...');
             const element = document.getElementById("capture-target");
             try {
                 const html2canvas = await ensureHtml2CanvasLoaded();
