@@ -8,7 +8,6 @@
     <!-- Librerías -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap"
@@ -447,7 +446,7 @@
     <!-- UI WEB (HEADER) -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-40 no-print shadow-sm">
         <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
+            <div class="header-logo flex items-center gap-3">
                 <div
                     class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-200">
                     <i class="fas fa-brain text-xl"></i>
@@ -458,7 +457,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-2">
+            <div class="header-actions flex items-center gap-2">
                 <div id="toast-msg"
                     class="hidden px-4 py-2 bg-green-100 text-green-700 text-xs font-bold rounded-full animate-fade-in items-center gap-2">
                     <i class="fas fa-check"></i> <span id="toast-text">Guardado</span>
@@ -769,6 +768,42 @@
             ]);
         }
 
+        async function timedQuery(label, queryFactory, onSuccess, timeoutMs = 5000) {
+            const start = performance.now();
+            try {
+                const { data, error } = await withTimeout(
+                    queryFactory(),
+                    timeoutMs,
+                    `${label} tardó demasiado`
+                );
+                const duration = Math.round(performance.now() - start);
+                console.info(`[bootstrap] ${label}: ${duration}ms`);
+                if (error) throw error;
+                onSuccess(data || []);
+                return { ok: true, label, duration };
+            } catch (error) {
+                const duration = Math.round(performance.now() - start);
+                console.warn(`[bootstrap] ${label} falló en ${duration}ms`, error);
+                showToast(`Aviso: ${label} no cargó a tiempo`);
+                return { ok: false, label, duration, error };
+            }
+        }
+
+        let html2canvasLoader = null;
+        async function ensureHtml2CanvasLoaded() {
+            if (window.html2canvas) return window.html2canvas;
+            if (!html2canvasLoader) {
+                html2canvasLoader = new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                    script.onload = () => resolve(window.html2canvas);
+                    script.onerror = () => reject(new Error('No se pudo cargar html2canvas.'));
+                    document.head.appendChild(script);
+                });
+            }
+            return html2canvasLoader;
+        }
+
         function setAssignmentControlsDisabled(disabled) {
             document.querySelectorAll('select[data-prev-value]').forEach(select => {
                 select.disabled = disabled;
@@ -781,47 +816,7 @@
             });
         }
 
-        async function initData() {
-            const { data: { session: currentSession } } = await supabaseClient.auth.getSession();
-            session = currentSession;
-            
-            supabaseClient.auth.onAuthStateChange(async (_event, curSession) => {
-                session = curSession;
-                if (session) {
-                    await fetchSolicitudes();
-                } else {
-                    const res = await supabaseClient.from('solicitudes_publicas').select('date_key');
-                    if (!res.error && res.data) solicitudesPendientes = res.data;
-                }
-                verificarEstadoBotonesAdmin();
-                renderTodo();
-            });
-
-            try {
-                // Solicitudes (Seguridad: público solo ve date_key vía Vista)
-                let solData, solErr;
-                if (session) {
-                    const res = await supabaseClient.from('solicitudes_apartado').select('*').eq('estado', 'pendiente').order('created_at', { ascending: false });
-                    solData = res.data; solErr = res.error;
-                } else {
-                    const res = await supabaseClient.from('solicitudes_publicas').select('date_key');
-                    solData = res.data; solErr = res.error;
-                }
-                if (!solErr && solData) solicitudesPendientes = solData;
-
-                // Sync total desde la nube
-                await refreshDataFromCloud();
-                
-            } catch (err) {
-                console.error("Error crítico de conexión con la nube:", err);
-                alert("No se pudo conectar con el servidor. Verifica tu conexión.");
-            }
-            verificarEstadoBotonesAdmin();
-            renderMeses();
-            renderTodo();
-            document.getElementById('pdf-gen-date').innerText = new Date().toLocaleDateString();
-
-            // Interacción quirúrgica para dropdowns en móvil
+        function setupHeaderInteractions() {
             document.querySelectorAll('.header-actions .group').forEach(group => {
                 group.addEventListener('click', function(e) {
                     if (window.innerWidth <= 640) {
@@ -835,6 +830,109 @@
                     }
                 });
             });
+        }
+
+        async function loadSolicitudesForSession(currentSession) {
+            if (currentSession) {
+                return timedQuery(
+                    'solicitudes',
+                    () => supabaseClient.from('solicitudes_apartado')
+                        .select('id, created_at, date_key, fecha_texto, actividad, horario, modalidad, solicitante_nombre, mensaje_whatsapp, estado')
+                        .eq('estado', 'pendiente')
+                        .order('created_at', { ascending: false }),
+                    (data) => { solicitudesPendientes = data; },
+                    5000
+                );
+            }
+
+            return timedQuery(
+                'solicitudes',
+                () => supabaseClient.from('solicitudes_publicas').select('date_key'),
+                (data) => { solicitudesPendientes = data; },
+                4000
+            );
+        }
+
+        async function refreshDataFromCloud() {
+            const tasks = [
+                timedQuery(
+                    'mentores',
+                    () => supabaseClient.from('mentores').select('nombre'),
+                    (data) => { mentores = data.map(m => m.nombre); },
+                    5000
+                ),
+                timedQuery(
+                    'asignaciones',
+                    () => supabaseClient.from('asignaciones').select('date_key, mentor_nombre'),
+                    (data) => {
+                        asignaciones = {};
+                        data.forEach(r => { asignaciones[r.date_key] = r.mentor_nombre; });
+                    },
+                    5000
+                ),
+                timedQuery(
+                    'configuracion_dias',
+                    () => supabaseClient.from('configuracion_dias').select('date_key, actividad, horario'),
+                    (data) => {
+                        configuracionDias = {};
+                        data.forEach(r => { configuracionDias[r.date_key] = { actividad: r.actividad, horario: r.horario }; });
+                    },
+                    5000
+                ),
+                timedQuery(
+                    'configuracion_base',
+                    () => supabaseClient.from('configuracion_base').select('dia, activo, actividad, horario, esVirtualSiempre'),
+                    (data) => {
+                        if (data.length > 0) {
+                            configuracionBase = {};
+                            data.forEach(r => {
+                                configuracionBase[r.dia] = { activo: r.activo, actividad: r.actividad, horario: r.horario, esVirtualSiempre: r.esVirtualSiempre };
+                            });
+                        }
+                    },
+                    5000
+                )
+            ];
+
+            return Promise.allSettled(tasks);
+        }
+
+        async function bootstrapCloudData() {
+            try {
+                const sessionResult = await timedQuery(
+                    'sesion',
+                    () => supabaseClient.auth.getSession(),
+                    (data) => { session = data.session; },
+                    4000
+                );
+
+                supabaseClient.auth.onAuthStateChange(async (_event, curSession) => {
+                    session = curSession;
+                    await loadSolicitudesForSession(session);
+                    verificarEstadoBotonesAdmin();
+                    renderTodo();
+                });
+
+                await Promise.allSettled([
+                    refreshDataFromCloud(),
+                    loadSolicitudesForSession(sessionResult.ok ? session : null)
+                ]);
+            } catch (err) {
+                console.error("Error crítico de conexión con la nube:", err);
+                showToast("Aviso: conexión lenta con la nube");
+            } finally {
+                verificarEstadoBotonesAdmin();
+                renderTodo();
+            }
+        }
+
+        function initData() {
+            renderMeses();
+            renderTodo();
+            document.getElementById('pdf-gen-date').innerText = new Date().toLocaleDateString();
+            verificarEstadoBotonesAdmin();
+            setupHeaderInteractions();
+            void bootstrapCloudData();
         }
 
         // --- RUTINAS DE AUTENTICACIÓN ---
@@ -896,9 +994,7 @@
             }
         }
 
-        window.onload = () => {
-            initData();
-        };
+        document.addEventListener('DOMContentLoaded', initData);
 
         function getISOWeek(d) {
             d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -907,35 +1003,6 @@
             return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
         }
         function formatDateKey(date) { return date.toISOString().split('T')[0]; }
-
-        async function refreshDataFromCloud() {
-            // Mentores
-            const { data: mData } = await supabaseClient.from('mentores').select('*');
-            if (mData) mentores = mData.map(m => m.nombre);
-
-            // Asignaciones
-            const { data: aData } = await supabaseClient.from('asignaciones').select('*');
-            if (aData) {
-                asignaciones = {};
-                aData.forEach(r => { asignaciones[r.date_key] = r.mentor_nombre; });
-            }
-
-            // Config Días
-            const { data: cdData } = await supabaseClient.from('configuracion_dias').select('*');
-            if (cdData) {
-                configuracionDias = {};
-                cdData.forEach(r => { configuracionDias[r.date_key] = { actividad: r.actividad, horario: r.horario }; });
-            }
-
-            // Config Base
-            const { data: cbData } = await supabaseClient.from('configuracion_base').select('*');
-            if (cbData && cbData.length > 0) {
-                configuracionBase = {};
-                cbData.forEach(r => {
-                    configuracionBase[r.dia] = { activo: r.activo, actividad: r.actividad, horario: r.horario, esVirtualSiempre: r.esVirtualSiempre };
-                });
-            }
-        }
 
         async function refreshAsignacionesFromCloud() {
             const { data, error } = await withTimeout(
@@ -1645,6 +1712,7 @@
             showToast('Generando imagen...');
             const element = document.getElementById("capture-target");
             try {
+                const html2canvas = await ensureHtml2CanvasLoaded();
                 const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
                 const link = document.createElement('a');
                 link.download = `Programacion_${MESES[mesSeleccionado]}_${modo}.png`;
