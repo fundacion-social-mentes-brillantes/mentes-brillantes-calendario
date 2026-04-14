@@ -183,15 +183,24 @@
                 justify-content: center;
             }
             #menu-image {
-                position: fixed !important;
-                left: 1rem !important;
-                right: 1rem !important;
-                width: auto !important;
-                max-width: none !important;
-                margin-top: 0 !important;
-                transform: none !important;
-                z-index: 120 !important;
-                pointer-events: auto !important;
+                display: none !important;
+            }
+            #image-sheet-backdrop {
+                display: flex;
+                align-items: flex-end;
+                justify-content: center;
+                padding: 1rem;
+                z-index: 140 !important;
+            }
+            #image-sheet-panel {
+                width: min(100%, 26rem);
+                max-width: none;
+                border-radius: 1.25rem 1.25rem 0 0;
+                max-height: calc(100vh - 4rem);
+                overflow-y: auto;
+            }
+            #image-sheet-panel button[data-image-action] {
+                min-height: 3.5rem;
             }
             /* Chips de meses más cómodos */
             .month-chip {
@@ -572,6 +581,42 @@
             </div>
         </div>
     </header>
+
+    <div id="image-sheet-backdrop" class="fixed inset-0 hidden bg-slate-950/55 z-[140] p-4">
+        <div id="image-sheet-panel" class="w-full max-w-md bg-white shadow-2xl border border-slate-100 rounded-t-3xl rounded-b-2xl overflow-hidden">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                <div>
+                    <h3 class="text-base font-bold text-slate-800">Exportar Imagen</h3>
+                    <p class="text-xs text-slate-500 mt-1">Elige el tipo de imagen que quieres generar</p>
+                </div>
+                <button type="button" id="btn-close-image-sheet" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors" aria-label="Cerrar opciones de imagen">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4 space-y-3">
+                <button type="button" id="btn-image-sheet-dispo" data-image-action="true"
+                    class="w-full text-left px-4 py-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center gap-3 transition-colors">
+                    <span class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
+                        <i class="far fa-calendar"></i>
+                    </span>
+                    <span>
+                        <span class="block font-semibold">Imagen Disponibilidad</span>
+                        <span class="block text-xs text-slate-500 mt-1">Genera la vista de fechas disponibles</span>
+                    </span>
+                </button>
+                <button type="button" id="btn-image-sheet-asignado" data-image-action="true"
+                    class="w-full text-left px-4 py-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center gap-3 transition-colors">
+                    <span class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-user-check"></i>
+                    </span>
+                    <span>
+                        <span class="block font-semibold">Imagen Asignados</span>
+                        <span class="block text-xs text-slate-500 mt-1">Genera la vista con mentores ya asignados</span>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- UI WEB (CONTENIDO) -->
     <main class="max-w-6xl mx-auto p-4 md:p-8 no-print flex-grow">
@@ -1193,54 +1238,58 @@
             const imageMenuButton = document.getElementById('btn-image-menu');
             const imageMenu = document.getElementById('menu-image');
             const imageMenuWrapper = document.getElementById('image-menu-wrapper');
+            const imageSheetBackdrop = document.getElementById('image-sheet-backdrop');
+            const imageSheetPanel = document.getElementById('image-sheet-panel');
+            const closeImageSheetButton = document.getElementById('btn-close-image-sheet');
+            const imageSheetDispoButton = document.getElementById('btn-image-sheet-dispo');
+            const imageSheetAsignadoButton = document.getElementById('btn-image-sheet-asignado');
 
             if (!imageMenuButton || !imageMenu || !imageMenuWrapper) return;
             if (imageMenuButton.dataset.bound === 'true') return;
             imageMenuButton.dataset.bound = 'true';
 
-            const positionImageMenu = () => {
-                if (window.innerWidth > 640) {
-                    imageMenu.style.top = '';
-                    imageMenu.style.left = '';
-                    imageMenu.style.right = '';
-                    imageMenu.style.width = '';
-                    imageMenu.style.maxWidth = '';
-                    imageMenu.style.transform = '';
-                    imageMenu.style.position = '';
-                    return;
-                }
-
-                const viewportPadding = 16;
-                const buttonRect = imageMenuButton.getBoundingClientRect();
-                const preferredTop = buttonRect.bottom + 8;
-                const menuHeight = imageMenu.offsetHeight || 0;
-                const maxTop = Math.max(viewportPadding, window.innerHeight - menuHeight - viewportPadding);
-                const top = Math.max(viewportPadding, Math.min(preferredTop, maxTop));
-
-                imageMenu.style.position = 'fixed';
-                imageMenu.style.left = '1rem';
-                imageMenu.style.right = '1rem';
-                imageMenu.style.width = 'auto';
-                imageMenu.style.maxWidth = 'none';
-                imageMenu.style.transform = 'none';
-                imageMenu.style.top = `${top}px`;
-            };
+            const isMobileImageUI = () => window.innerWidth <= 640;
 
             const closeImageMenu = () => {
                 imageMenu.classList.add('hidden');
                 imageMenuButton.setAttribute('aria-expanded', 'false');
             };
 
+            const openImageSheet = () => {
+                if (!imageSheetBackdrop) return;
+                closeImageMenu();
+                imageSheetBackdrop.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+                imageMenuButton.setAttribute('aria-expanded', 'true');
+            };
+
+            const closeImageSheet = () => {
+                if (!imageSheetBackdrop) return;
+                imageSheetBackdrop.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+                imageMenuButton.setAttribute('aria-expanded', 'false');
+            };
+
             const toggleImageMenu = (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                const isHidden = imageMenu.classList.contains('hidden');
-                if (isHidden) {
-                    imageMenu.classList.remove('hidden');
-                    positionImageMenu();
-                    imageMenuButton.setAttribute('aria-expanded', 'true');
+
+                if (isMobileImageUI()) {
+                    const isSheetHidden = imageSheetBackdrop ? imageSheetBackdrop.classList.contains('hidden') : true;
+                    if (isSheetHidden) {
+                        openImageSheet();
+                    } else {
+                        closeImageSheet();
+                    }
                 } else {
-                    closeImageMenu();
+                    closeImageSheet();
+                    const isHidden = imageMenu.classList.contains('hidden');
+                    if (isHidden) {
+                        imageMenu.classList.remove('hidden');
+                        imageMenuButton.setAttribute('aria-expanded', 'true');
+                    } else {
+                        closeImageMenu();
+                    }
                 }
             };
 
@@ -1249,11 +1298,41 @@
             imageMenu.addEventListener('click', (event) => event.stopPropagation());
 
             document.addEventListener('click', (event) => {
-                if (!imageMenuWrapper.contains(event.target)) closeImageMenu();
+                if (!isMobileImageUI() && !imageMenuWrapper.contains(event.target)) closeImageMenu();
             });
 
+            if (imageSheetPanel) {
+                imageSheetPanel.addEventListener('click', (event) => event.stopPropagation());
+            }
+
+            if (imageSheetBackdrop) {
+                imageSheetBackdrop.addEventListener('click', closeImageSheet);
+            }
+
+            if (closeImageSheetButton) {
+                closeImageSheetButton.addEventListener('click', closeImageSheet);
+            }
+
+            if (imageSheetDispoButton) {
+                imageSheetDispoButton.addEventListener('click', () => {
+                    closeImageSheet();
+                    descargarImagen('dispo');
+                });
+            }
+
+            if (imageSheetAsignadoButton) {
+                imageSheetAsignadoButton.addEventListener('click', () => {
+                    closeImageSheet();
+                    descargarImagen('asignado');
+                });
+            }
+
             window.addEventListener('resize', () => {
-                if (!imageMenu.classList.contains('hidden')) positionImageMenu();
+                if (isMobileImageUI()) {
+                    closeImageMenu();
+                } else {
+                    closeImageSheet();
+                }
             });
         }
 
