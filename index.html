@@ -179,17 +179,13 @@
             .group-hover\:block > div {
                 box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
             }
-            #image-menu-wrapper {
-                width: 100%;
-            }
             #btn-image-menu {
                 justify-content: center;
-                width: 100%;
             }
             #menu-image {
-                left: 0 !important;
                 right: 0 !important;
-                width: 100% !important;
+                width: min(18rem, calc(100vw - 1.5rem)) !important;
+                max-width: calc(100vw - 1.5rem) !important;
                 margin-top: 0.5rem !important;
                 z-index: 120 !important;
                 pointer-events: auto !important;
@@ -531,7 +527,7 @@
 
                 <!-- Menú Desplegable IMAGEN -->
                 <div class="relative z-30" id="image-menu-wrapper">
-                    <button type="button" id="btn-image-menu" aria-expanded="false" aria-controls="menu-image"
+                    <button type="button" id="btn-image-menu" aria-expanded="false" aria-controls="menu-image" style="touch-action: manipulation;"
                         class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all">
                         <i class="fas fa-image"></i> <span class="hidden sm:inline">Imagen</span> <i
                             class="fas fa-chevron-down text-xs ml-1 opacity-70"></i>
@@ -1217,22 +1213,12 @@
             };
 
             imageMenuButton.addEventListener('click', toggleImageMenu);
-            imageMenuButton.addEventListener('pointerup', toggleImageMenu);
-            imageMenuButton.addEventListener('touchend', toggleImageMenu, { passive: false });
 
             imageMenu.addEventListener('click', (event) => event.stopPropagation());
-            imageMenu.addEventListener('pointerup', (event) => event.stopPropagation());
-            imageMenu.addEventListener('touchend', (event) => event.stopPropagation(), { passive: false });
 
             document.addEventListener('click', (event) => {
                 if (!imageMenuWrapper.contains(event.target)) closeImageMenu();
             });
-            document.addEventListener('pointerup', (event) => {
-                if (!imageMenuWrapper.contains(event.target)) closeImageMenu();
-            });
-            document.addEventListener('touchend', (event) => {
-                if (!imageMenuWrapper.contains(event.target)) closeImageMenu();
-            }, { passive: true });
         }
 
         async function loadSolicitudesForSession(currentSession) {
