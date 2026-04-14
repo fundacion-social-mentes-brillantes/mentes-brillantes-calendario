@@ -1153,6 +1153,15 @@
             return html2canvasLoader;
         }
 
+        function canvasToBlob(canvas) {
+            return new Promise((resolve, reject) => {
+                canvas.toBlob((blob) => {
+                    if (blob) resolve(blob);
+                    else reject(new Error('No se pudo convertir la imagen.'));
+                }, 'image/png');
+            });
+        }
+
         function setAssignmentControlsDisabled(disabled) {
             document.querySelectorAll('select[data-prev-value]').forEach(select => {
                 select.disabled = disabled;
@@ -2107,6 +2116,146 @@
                 link.click();
                 showToast('¡Imagen descargada!');
             } catch (err) { alert("Error al generar imagen. Usa Chrome/Edge."); }
+        }
+
+        async function descargarImagen(modo) {
+            if (assignmentSaveInProgress) {
+                alert('Espera a que termine el guardado actual');
+                return;
+            }
+            showToast('Refrescando datos de la nube...');
+            let assignmentSource = 'cloud';
+            try {
+                await withTimeout(
+                    refreshAsignacionesFromCloud(),
+                    6000,
+                    'No se pudieron refrescar las asignaciones'
+                );
+            } catch (err) {
+                const snapshot = getLocalSnapshot();
+                if (snapshot?.asignaciones && Object.keys(snapshot.asignaciones).length > 0) {
+                    asignaciones = snapshot.asignaciones;
+                    assignmentSource = 'cache';
+                    showToast('Usando copia local de asignaciones');
+                } else {
+                    logCloudError('descargarImagen:refreshAsignaciones', err);
+                    alert(err.message || "Error: No se pudieron refrescar las asignaciones desde la nube.");
+                    return;
+                }
+            }
+
+            const flyerList = document.getElementById('flyer-list');
+            document.getElementById('flyer-month').innerText = MESES[mesSeleccionado];
+            flyerList.innerHTML = '';
+
+            let current = new Date(START_DATE);
+            while (current <= END_DATE) {
+                if (current.getMonth() === mesSeleccionado) {
+                    const day = current.getDay();
+                    const confBase = configuracionBase[day];
+
+                    if (confBase && confBase.activo) {
+                        const dateKey = formatDateKey(current);
+                        const isoWeek = getISOWeek(current);
+                        const isHoliday = FESTIVOS.includes(dateKey);
+                        const isEven = isoWeek % 2 === 0;
+
+                        let isVirtual = isEven;
+                        if (confBase.esVirtualSiempre) isVirtual = true;
+
+                        const modalLabel = isVirtual ? 'Virtual' : 'Presencial';
+                        const assignedTo = asignaciones[dateKey];
+
+                        let actividad = confBase.actividad;
+                        let horario = confBase.horario;
+                        let dayAbbr = ABBR_DIAS[day];
+
+                        if (configuracionDias[dateKey]) {
+                            actividad = configuracionDias[dateKey].actividad;
+                            horario = configuracionDias[dateKey].horario;
+                        }
+
+                        let rowClass = isHoliday ? 'festivo' : (isVirtual ? 'virtual' : 'presencial');
+                        let statusBadge = '';
+                        if (isHoliday) statusBadge = `<span class="text-red-500 font-bold italic text-sm">CANCELADO</span>`;
+                        else if (modo === 'dispo') statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned">OCUPADO</span>` : `<span class="flyer-status status-badge-ok">DISPONIBLE</span>`;
+                        else statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned"><i class="fas fa-user-check mr-1"></i> ${assignedTo}</span>` : `<span class="flyer-status status-badge-empty">SIN ASIGNAR</span>`;
+
+                        flyerList.innerHTML += `
+                            <div class="flyer-row ${rowClass}">
+                                <div class="flyer-date">
+                                    <div class="text-3xl font-bold text-slate-800">${current.getDate()}</div>
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${dayAbbr}</div>
+                                </div>
+                                <div class="flyer-content">
+                                    <div class="text-slate-800 font-bold text-lg leading-tight ${isHoliday ? 'line-through opacity-50' : ''}">${actividad}</div>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        ${!isHoliday ? `<span class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 rounded"><i class="far fa-clock text-[10px] mr-1"></i>${horario}</span>` : ''}
+                                        <span class="text-[10px] font-semibold uppercase ${isVirtual ? 'text-purple-600' : 'text-green-600'}">${!isHoliday ? modalLabel : ''}</span>
+                                    </div>
+                                </div>
+                                <div>${statusBadge}</div>
+                            </div>
+                        `;
+                    }
+                }
+                current.setDate(current.getDate() + 1);
+            }
+
+            showToast(assignmentSource === 'cache' ? 'Generando imagen con copia local...' : 'Generando imagen...');
+            const element = document.getElementById("capture-target");
+            try {
+                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 768;
+                const html2canvas = await ensureHtml2CanvasLoaded();
+                const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+                const blob = await canvasToBlob(canvas);
+                const fileName = `Programacion_${MESES[mesSeleccionado]}_${modo}.png`;
+                const objectUrl = URL.createObjectURL(blob);
+
+                if (isMobile) {
+                    try {
+                        if (navigator.share) {
+                            const imageFile = new File([blob], fileName, { type: 'image/png' });
+                            if (!navigator.canShare || navigator.canShare({ files: [imageFile] })) {
+                                showToast('Compartiendo imagen...');
+                                await navigator.share({
+                                    files: [imageFile],
+                                    title: fileName,
+                                    text: 'Imagen generada desde Mentes Brillantes'
+                                });
+                                console.info('[imagen] Compartida en móvil');
+                                showToast('Imagen lista para compartir');
+                                URL.revokeObjectURL(objectUrl);
+                                return;
+                            }
+                        }
+                    } catch (shareError) {
+                        console.warn('[imagen] navigator.share falló, usando fallback visual', shareError);
+                    }
+
+                    showToast('Abriendo imagen para guardar...');
+                    const previewWindow = window.open(objectUrl, '_blank');
+                    if (!previewWindow) {
+                        window.location.href = objectUrl;
+                    }
+                    console.info('[imagen] Preview móvil abierta para guardado manual');
+                    setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+                    return;
+                }
+
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = objectUrl;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                console.info('[imagen] Descarga directa iniciada en desktop');
+                showToast('Imagen descargada');
+                setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+            } catch (err) {
+                console.error('[imagen] Error al generar/exportar imagen', err);
+                alert("Error al generar imagen. Usa Chrome/Edge.");
+            }
         }
 
         // --- FUNCIONES EXPORTACIÓN WHATSAPP ---
