@@ -504,7 +504,7 @@
 
                 <!-- Menú Desplegable BACKUP -->
                 <div class="relative group z-30 hidden" id="btn-backup-admin">
-                    <button type="button" id="btn-image-menu" aria-expanded="false" aria-controls="menu-image"
+                    <button
                         class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all">
                         <i class="fas fa-database"></i> <span class="hidden sm:inline">Datos</span> <i
                             class="fas fa-chevron-down text-xs ml-1 opacity-70"></i>
@@ -531,7 +531,7 @@
 
                 <!-- Menú Desplegable IMAGEN -->
                 <div class="relative z-30" id="image-menu-wrapper">
-                    <button
+                    <button type="button" id="btn-image-menu" aria-expanded="false" aria-controls="menu-image"
                         class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all">
                         <i class="fas fa-image"></i> <span class="hidden sm:inline">Imagen</span> <i
                             class="fas fa-chevron-down text-xs ml-1 opacity-70"></i>
@@ -2066,7 +2066,7 @@
 
         // --- FUNCIONES EXPORTACIÓN IMAGEN ---
 
-        async function descargarImagen(modo) {
+        async function descargarImagenLegacy(modo) {
             if (assignmentSaveInProgress) {
                 alert('Espera a que termine el guardado actual');
                 return;
