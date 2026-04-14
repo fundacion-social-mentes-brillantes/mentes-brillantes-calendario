@@ -542,8 +542,8 @@
 
                 <!-- Menú Desplegable IMAGEN -->
                 <div class="relative z-30" id="image-menu-wrapper">
-                    <button type="button" id="btn-image-menu" aria-expanded="false" aria-controls="menu-image" style="touch-action: manipulation;"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all">
+                    <button type="button" id="btn-image-menu" aria-expanded="false" aria-controls="menu-image" style="touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all cursor-pointer select-none">
                         <i class="fas fa-image"></i> <span class="hidden sm:inline">Imagen</span> <i
                             class="fas fa-chevron-down text-xs ml-1 opacity-70"></i>
                     </button>
@@ -592,13 +592,14 @@
                     <h3 class="text-base font-bold text-slate-800">Exportar Imagen</h3>
                     <p class="text-xs text-slate-500 mt-1">Elige el tipo de imagen que quieres generar</p>
                 </div>
-                <button type="button" id="btn-close-image-sheet" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors" aria-label="Cerrar opciones de imagen">
+                <button type="button" id="btn-close-image-sheet" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer select-none" style="-webkit-tap-highlight-color: transparent; user-select: none;" aria-label="Cerrar opciones de imagen">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="p-4 space-y-3">
                 <button type="button" id="btn-image-sheet-dispo" data-image-action="true"
-                    class="w-full text-left px-4 py-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center gap-3 transition-colors">
+                    style="-webkit-tap-highlight-color: transparent; user-select: none;"
+                    class="w-full text-left px-4 py-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center gap-3 transition-colors cursor-pointer select-none">
                     <span class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
                         <i class="far fa-calendar"></i>
                     </span>
@@ -608,7 +609,8 @@
                     </span>
                 </button>
                 <button type="button" id="btn-image-sheet-asignado" data-image-action="true"
-                    class="w-full text-left px-4 py-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center gap-3 transition-colors">
+                    style="-webkit-tap-highlight-color: transparent; user-select: none;"
+                    class="w-full text-left px-4 py-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center gap-3 transition-colors cursor-pointer select-none">
                     <span class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center flex-shrink-0">
                         <i class="fas fa-user-check"></i>
                     </span>
@@ -1252,6 +1254,26 @@
             imageMenuButton.dataset.bound = 'true';
 
             const isMobileImageUI = () => window.innerWidth <= 640;
+            const mobileInteractionEvent = typeof window.PointerEvent === 'function' ? 'pointerdown' : 'touchstart';
+
+            const bindPrimaryInteraction = (element, handler) => {
+                if (!element) return;
+
+                if (isMobileImageUI()) {
+                    element.addEventListener(mobileInteractionEvent, (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        handler(event);
+                    }, { passive: false });
+                    return;
+                }
+
+                element.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    handler(event);
+                });
+            };
 
             const closeImageMenu = () => {
                 imageMenu.classList.add('hidden');
@@ -1274,9 +1296,6 @@
             };
 
             const toggleImageMenu = (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-
                 if (isMobileImageUI()) {
                     const isSheetHidden = imageSheetBackdrop ? imageSheetBackdrop.classList.contains('hidden') : true;
                     if (isSheetHidden) {
@@ -1296,7 +1315,7 @@
                 }
             };
 
-            imageMenuButton.addEventListener('click', toggleImageMenu);
+            bindPrimaryInteraction(imageMenuButton, toggleImageMenu);
 
             imageMenu.addEventListener('click', (event) => event.stopPropagation());
 
@@ -1309,22 +1328,22 @@
             }
 
             if (imageSheetBackdrop) {
-                imageSheetBackdrop.addEventListener('click', closeImageSheet);
+                bindPrimaryInteraction(imageSheetBackdrop, closeImageSheet);
             }
 
             if (closeImageSheetButton) {
-                closeImageSheetButton.addEventListener('click', closeImageSheet);
+                bindPrimaryInteraction(closeImageSheetButton, closeImageSheet);
             }
 
             if (imageSheetDispoButton) {
-                imageSheetDispoButton.addEventListener('click', () => {
+                bindPrimaryInteraction(imageSheetDispoButton, () => {
                     closeImageSheet();
                     descargarImagen('dispo');
                 });
             }
 
             if (imageSheetAsignadoButton) {
-                imageSheetAsignadoButton.addEventListener('click', () => {
+                bindPrimaryInteraction(imageSheetAsignadoButton, () => {
                     closeImageSheet();
                     descargarImagen('asignado');
                 });
