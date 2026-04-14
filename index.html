@@ -183,10 +183,13 @@
                 justify-content: center;
             }
             #menu-image {
-                right: 0 !important;
-                width: min(18rem, calc(100vw - 1.5rem)) !important;
-                max-width: calc(100vw - 1.5rem) !important;
-                margin-top: 0.5rem !important;
+                position: fixed !important;
+                left: 1rem !important;
+                right: 1rem !important;
+                width: auto !important;
+                max-width: none !important;
+                margin-top: 0 !important;
+                transform: none !important;
                 z-index: 120 !important;
                 pointer-events: auto !important;
             }
@@ -1195,6 +1198,34 @@
             if (imageMenuButton.dataset.bound === 'true') return;
             imageMenuButton.dataset.bound = 'true';
 
+            const positionImageMenu = () => {
+                if (window.innerWidth > 640) {
+                    imageMenu.style.top = '';
+                    imageMenu.style.left = '';
+                    imageMenu.style.right = '';
+                    imageMenu.style.width = '';
+                    imageMenu.style.maxWidth = '';
+                    imageMenu.style.transform = '';
+                    imageMenu.style.position = '';
+                    return;
+                }
+
+                const viewportPadding = 16;
+                const buttonRect = imageMenuButton.getBoundingClientRect();
+                const preferredTop = buttonRect.bottom + 8;
+                const menuHeight = imageMenu.offsetHeight || 0;
+                const maxTop = Math.max(viewportPadding, window.innerHeight - menuHeight - viewportPadding);
+                const top = Math.max(viewportPadding, Math.min(preferredTop, maxTop));
+
+                imageMenu.style.position = 'fixed';
+                imageMenu.style.left = '1rem';
+                imageMenu.style.right = '1rem';
+                imageMenu.style.width = 'auto';
+                imageMenu.style.maxWidth = 'none';
+                imageMenu.style.transform = 'none';
+                imageMenu.style.top = `${top}px`;
+            };
+
             const closeImageMenu = () => {
                 imageMenu.classList.add('hidden');
                 imageMenuButton.setAttribute('aria-expanded', 'false');
@@ -1206,6 +1237,7 @@
                 const isHidden = imageMenu.classList.contains('hidden');
                 if (isHidden) {
                     imageMenu.classList.remove('hidden');
+                    positionImageMenu();
                     imageMenuButton.setAttribute('aria-expanded', 'true');
                 } else {
                     closeImageMenu();
@@ -1218,6 +1250,10 @@
 
             document.addEventListener('click', (event) => {
                 if (!imageMenuWrapper.contains(event.target)) closeImageMenu();
+            });
+
+            window.addEventListener('resize', () => {
+                if (!imageMenu.classList.contains('hidden')) positionImageMenu();
             });
         }
 
