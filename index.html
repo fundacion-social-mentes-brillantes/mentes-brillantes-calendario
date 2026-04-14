@@ -179,6 +179,21 @@
             .group-hover\:block > div {
                 box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
             }
+            #image-menu-wrapper {
+                width: 100%;
+            }
+            #btn-image-menu {
+                justify-content: center;
+                width: 100%;
+            }
+            #menu-image {
+                left: 0 !important;
+                right: 0 !important;
+                width: 100% !important;
+                margin-top: 0.5rem !important;
+                z-index: 120 !important;
+                pointer-events: auto !important;
+            }
             /* Chips de meses más cómodos */
             .month-chip {
                 padding: 0.6rem 1.2rem !important;
@@ -489,7 +504,7 @@
 
                 <!-- Menú Desplegable BACKUP -->
                 <div class="relative group z-30 hidden" id="btn-backup-admin">
-                    <button
+                    <button type="button" id="btn-image-menu" aria-expanded="false" aria-controls="menu-image"
                         class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all">
                         <i class="fas fa-database"></i> <span class="hidden sm:inline">Datos</span> <i
                             class="fas fa-chevron-down text-xs ml-1 opacity-70"></i>
@@ -515,13 +530,14 @@
                 </div>
 
                 <!-- Menú Desplegable IMAGEN -->
-                <div class="relative group z-30">
+                <div class="relative z-30" id="image-menu-wrapper">
                     <button
                         class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all">
                         <i class="fas fa-image"></i> <span class="hidden sm:inline">Imagen</span> <i
                             class="fas fa-chevron-down text-xs ml-1 opacity-70"></i>
                     </button>
-                    <div class="absolute right-0 top-full pt-2 w-56 hidden group-hover:block animate-fade-in">
+                    <div id="menu-image"
+                        class="absolute right-0 top-full mt-2 w-56 hidden z-[120] pointer-events-auto animate-fade-in">
                         <div class="bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
                             <button onclick="descargarImagen('dispo')" data-image-action="true"
                                 class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 text-slate-700 border-b border-slate-50 flex items-center gap-2 hover:text-indigo-600 transition-colors">
@@ -1175,19 +1191,48 @@
         }
 
         function setupHeaderInteractions() {
-            document.querySelectorAll('.header-actions .group').forEach(group => {
-                group.addEventListener('click', function(e) {
-                    if (window.innerWidth <= 640) {
-                        const dropdown = this.querySelector('.animate-fade-in');
-                        if (dropdown && !e.target.closest('.animate-fade-in')) {
-                            const isHidden = dropdown.classList.contains('hidden');
-                            document.querySelectorAll('.header-actions .animate-fade-in').forEach(d => d.classList.add('hidden'));
-                            if (isHidden) dropdown.classList.remove('hidden');
-                            else dropdown.classList.add('hidden');
-                        }
-                    }
-                });
+            const imageMenuButton = document.getElementById('btn-image-menu');
+            const imageMenu = document.getElementById('menu-image');
+            const imageMenuWrapper = document.getElementById('image-menu-wrapper');
+
+            if (!imageMenuButton || !imageMenu || !imageMenuWrapper) return;
+            if (imageMenuButton.dataset.bound === 'true') return;
+            imageMenuButton.dataset.bound = 'true';
+
+            const closeImageMenu = () => {
+                imageMenu.classList.add('hidden');
+                imageMenuButton.setAttribute('aria-expanded', 'false');
+            };
+
+            const toggleImageMenu = (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const isHidden = imageMenu.classList.contains('hidden');
+                if (isHidden) {
+                    imageMenu.classList.remove('hidden');
+                    imageMenuButton.setAttribute('aria-expanded', 'true');
+                } else {
+                    closeImageMenu();
+                }
+            };
+
+            imageMenuButton.addEventListener('click', toggleImageMenu);
+            imageMenuButton.addEventListener('pointerup', toggleImageMenu);
+            imageMenuButton.addEventListener('touchend', toggleImageMenu, { passive: false });
+
+            imageMenu.addEventListener('click', (event) => event.stopPropagation());
+            imageMenu.addEventListener('pointerup', (event) => event.stopPropagation());
+            imageMenu.addEventListener('touchend', (event) => event.stopPropagation(), { passive: false });
+
+            document.addEventListener('click', (event) => {
+                if (!imageMenuWrapper.contains(event.target)) closeImageMenu();
             });
+            document.addEventListener('pointerup', (event) => {
+                if (!imageMenuWrapper.contains(event.target)) closeImageMenu();
+            });
+            document.addEventListener('touchend', (event) => {
+                if (!imageMenuWrapper.contains(event.target)) closeImageMenu();
+            }, { passive: true });
         }
 
         async function loadSolicitudesForSession(currentSession) {
