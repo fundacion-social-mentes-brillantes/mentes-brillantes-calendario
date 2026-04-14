@@ -7,7 +7,9 @@
     <title>Gestor Mentes Brillantes - Pro</title>
     <!-- Librerías -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap"
@@ -757,10 +759,268 @@
         let assignmentSaveInProgress = false;
         const LOCAL_CACHE_KEY = 'mb_calendario_cloud_snapshot_v1';
 
-        // --- SUPABASE CONFIG ---
-        const SUPABASE_URL = 'https://vasjxzgdgafrlnxjqbqf.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_UDQuVLPLSBw4WRwnEXpoZg_HYSiziDc';
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // --- FIREBASE CONFIG ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDtINIcLWLnc1nidwOixD_rbyKB1S7uDk",
+            authDomain: "calendario-mentes-brillantes.firebaseapp.com",
+            projectId: "calendario-mentes-brillantes",
+            storageBucket: "calendario-mentes-brillantes.firebasestorage.app",
+            messagingSenderId: "447352324909",
+            appId: "1:447352324909:web:e40458b1bc05db729849a4",
+            measurementId: "G-P6C1ZJCX54"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const firebaseAuth = firebase.auth();
+        const firestore = firebase.firestore();
+        firestore.enablePersistence({ synchronizeTabs: true }).catch((error) => {
+            console.warn('[Firebase cache] No se pudo activar persistencia local', error);
+        });
+
+        const FIRESTORE_COLLECTIONS = {
+            mentores: 'mentores',
+            asignaciones: 'asignaciones',
+            configuracion_dias: 'configuracionDias',
+            configuracion_base: 'configuracionBase',
+            solicitudes_apartado: 'solicitudesApartado'
+        };
+
+        function getDocKeyField(table) {
+            const keyFields = {
+                mentores: 'nombre',
+                asignaciones: 'date_key',
+                configuracion_dias: 'date_key',
+                configuracion_base: 'dia',
+                solicitudes_apartado: 'id'
+            };
+            return keyFields[table];
+        }
+
+        function toDocId(table, value) {
+            if (value === null || value === undefined) return null;
+            if (table === 'configuracion_base') return String(value);
+            return encodeURIComponent(String(value));
+        }
+
+        function normalizeRecord(table, record = {}) {
+            const normalized = { ...record };
+            if (table === 'configuracion_base' && normalized.dia !== undefined) {
+                normalized.dia = parseInt(normalized.dia, 10);
+            }
+            if (table === 'solicitudes_apartado') {
+                normalized.id = normalized.id || firestore.collection(FIRESTORE_COLLECTIONS.solicitudes_apartado).doc().id;
+                normalized.created_at = normalized.created_at || new Date().toISOString();
+            }
+            return normalized;
+        }
+
+        function projectRecord(record, fields) {
+            if (!fields || fields === '*') return { ...record };
+            const selectedFields = fields.split(',').map(field => field.trim()).filter(Boolean);
+            const projected = {};
+            selectedFields.forEach((field) => {
+                if (record[field] !== undefined) projected[field] = record[field];
+            });
+            return projected;
+        }
+
+        function applyFilters(records, filters = []) {
+            return records.filter((record) => {
+                return filters.every((filter) => {
+                    if (filter.type === 'eq') return record[filter.field] === filter.value;
+                    if (filter.type === 'neq') return record[filter.field] !== filter.value;
+                    return true;
+                });
+            });
+        }
+
+        function applyOrdering(records, orderBy) {
+            if (!orderBy) return records;
+            const ordered = [...records];
+            ordered.sort((a, b) => {
+                const aValue = a[orderBy.field];
+                const bValue = b[orderBy.field];
+                if (aValue === bValue) return 0;
+                if (aValue === undefined) return 1;
+                if (bValue === undefined) return -1;
+                return aValue > bValue ? 1 : -1;
+            });
+            return orderBy.ascending === false ? ordered.reverse() : ordered;
+        }
+
+        async function getAllTableRecords(table) {
+            if (table === 'solicitudes_publicas') {
+                const snapshot = await firestore.collection(FIRESTORE_COLLECTIONS.solicitudes_apartado).get();
+                return snapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .filter(record => record.estado === 'pendiente')
+                    .map(record => ({ date_key: record.date_key }));
+            }
+
+            const collectionName = FIRESTORE_COLLECTIONS[table];
+            if (!collectionName) throw new Error(`Tabla no soportada: ${table}`);
+
+            const snapshot = await firestore.collection(collectionName).get();
+            return snapshot.docs.map((doc) => {
+                const data = doc.data();
+                if (table === 'mentores') return { nombre: data.nombre || decodeURIComponent(doc.id) };
+                if (table === 'asignaciones') return { date_key: data.date_key || decodeURIComponent(doc.id), mentor_nombre: data.mentor_nombre || '' };
+                if (table === 'configuracion_dias') return { date_key: data.date_key || decodeURIComponent(doc.id), actividad: data.actividad || '', horario: data.horario || '' };
+                if (table === 'configuracion_base') return {
+                    dia: data.dia !== undefined ? parseInt(data.dia, 10) : parseInt(doc.id, 10),
+                    activo: !!data.activo,
+                    actividad: data.actividad || '',
+                    horario: data.horario || '',
+                    esVirtualSiempre: !!data.esVirtualSiempre
+                };
+                if (table === 'solicitudes_apartado') return { id: data.id || doc.id, ...data };
+                return { id: doc.id, ...data };
+            });
+        }
+
+        async function executeSelect(builder) {
+            const allRecords = await getAllTableRecords(builder.table);
+            const filtered = applyFilters(allRecords, builder.filters);
+            const ordered = applyOrdering(filtered, builder.orderBy);
+            const projected = ordered.map(record => projectRecord(record, builder.fields));
+            return { data: projected, error: null };
+        }
+
+        async function executeWrite(builder) {
+            const collectionName = FIRESTORE_COLLECTIONS[builder.table];
+            if (!collectionName) throw new Error(`Tabla no soportada: ${builder.table}`);
+            const collectionRef = firestore.collection(collectionName);
+            const payloads = Array.isArray(builder.payload) ? builder.payload : [builder.payload];
+            const batch = firestore.batch();
+
+            if (builder.action === 'insert' || builder.action === 'upsert') {
+                payloads.filter(Boolean).forEach((payload) => {
+                    const normalized = normalizeRecord(builder.table, payload);
+                    const keyField = getDocKeyField(builder.table);
+                    const docKey = keyField ? normalized[keyField] : normalized.id;
+                    const docId = toDocId(builder.table, docKey) || collectionRef.doc().id;
+                    batch.set(collectionRef.doc(docId), normalized, { merge: builder.action === 'upsert' });
+                });
+                await batch.commit();
+                return { data: payloads, error: null };
+            }
+
+            const allRecords = await getAllTableRecords(builder.table);
+            const matches = applyFilters(allRecords, builder.filters);
+
+            if (builder.action === 'delete') {
+                matches.forEach((record) => {
+                    const docId = toDocId(builder.table, record[getDocKeyField(builder.table)] || record.id);
+                    if (docId) batch.delete(collectionRef.doc(docId));
+                });
+                await batch.commit();
+                return { data: null, error: null };
+            }
+
+            if (builder.action === 'update') {
+                matches.forEach((record) => {
+                    const docId = toDocId(builder.table, record[getDocKeyField(builder.table)] || record.id);
+                    if (docId) batch.set(collectionRef.doc(docId), builder.payload, { merge: true });
+                });
+                await batch.commit();
+                return { data: null, error: null };
+            }
+
+            throw new Error(`Acción no soportada: ${builder.action}`);
+        }
+
+        function createFirebaseQueryBuilder(table) {
+            return {
+                table,
+                action: 'select',
+                fields: '*',
+                payload: null,
+                filters: [],
+                orderBy: null,
+                select(fields = '*') {
+                    this.action = 'select';
+                    this.fields = fields;
+                    return this;
+                },
+                insert(payload) {
+                    this.action = 'insert';
+                    this.payload = payload;
+                    return this;
+                },
+                upsert(payload) {
+                    this.action = 'upsert';
+                    this.payload = payload;
+                    return this;
+                },
+                update(payload) {
+                    this.action = 'update';
+                    this.payload = payload;
+                    return this;
+                },
+                delete() {
+                    this.action = 'delete';
+                    return this;
+                },
+                eq(field, value) {
+                    this.filters.push({ type: 'eq', field, value });
+                    return this;
+                },
+                neq(field, value) {
+                    this.filters.push({ type: 'neq', field, value });
+                    return this;
+                },
+                order(field, options = {}) {
+                    this.orderBy = { field, ascending: options.ascending !== false };
+                    return this;
+                },
+                async execute() {
+                    try {
+                        if (this.action === 'select') return await executeSelect(this);
+                        return await executeWrite(this);
+                    } catch (error) {
+                        return { data: null, error };
+                    }
+                },
+                then(resolve, reject) {
+                    return this.execute().then(resolve, reject);
+                },
+                catch(reject) {
+                    return this.execute().catch(reject);
+                }
+            };
+        }
+
+        const supabaseClient = {
+            auth: {
+                async getSession() {
+                    return {
+                        data: { session: firebaseAuth.currentUser ? { user: firebaseAuth.currentUser } : null },
+                        error: null
+                    };
+                },
+                onAuthStateChange(callback) {
+                    return firebaseAuth.onAuthStateChanged((user) => {
+                        callback('auth', user ? { user } : null);
+                    });
+                },
+                async signInWithPassword({ email, password }) {
+                    try {
+                        const credential = await firebaseAuth.signInWithEmailAndPassword(email, password);
+                        return {
+                            data: { session: credential.user ? { user: credential.user } : null },
+                            error: null
+                        };
+                    } catch (error) {
+                        return { data: null, error };
+                    }
+                },
+                async signOut() {
+                    await firebaseAuth.signOut();
+                }
+            },
+            from(table) {
+                return createFirebaseQueryBuilder(table);
+            }
+        };
 
         function withTimeout(promise, ms, message) {
             return Promise.race([
@@ -769,7 +1029,7 @@
             ]);
         }
 
-        function classifySupabaseError(error) {
+        function classifyCloudError(error) {
             const rawMessage = String(error?.message || error?.details || error?.hint || '').toLowerCase();
             const errorCode = String(error?.code || error?.status || '');
 
@@ -779,13 +1039,18 @@
                 rawMessage.includes('networkerror') ||
                 rawMessage.includes('network request failed') ||
                 rawMessage.includes('load failed') ||
-                rawMessage.includes('dns')
+                rawMessage.includes('dns') ||
+                errorCode === 'auth/network-request-failed'
             ) return 'network';
 
             if (
                 rawMessage.includes('invalid login credentials') ||
                 rawMessage.includes('invalid credentials') ||
                 rawMessage.includes('email not confirmed') ||
+                errorCode === 'auth/invalid-credential' ||
+                errorCode === 'auth/wrong-password' ||
+                errorCode === 'auth/user-not-found' ||
+                errorCode === 'auth/invalid-email' ||
                 errorCode === '400' ||
                 errorCode === '401'
             ) return 'invalid_credentials';
@@ -802,14 +1067,14 @@
             return 'unknown';
         }
 
-        function logSupabaseError(context, error) {
-            const kind = classifySupabaseError(error);
+        function logCloudError(context, error) {
+            const kind = classifyCloudError(error);
             const prefixes = {
                 network: '[DNS/Network]',
-                auth: '[Supabase auth error]',
-                postgrest: '[PostgREST/RLS error]',
+                auth: '[Firebase auth error]',
+                postgrest: '[Firestore rules/data error]',
                 invalid_credentials: '[Credenciales inválidas]',
-                unknown: '[Supabase error]'
+                unknown: '[Cloud error]'
             };
             console.error(`${prefixes[kind] || prefixes.unknown} ${context}`, error);
             return kind;
@@ -867,7 +1132,7 @@
                 return { ok: true, label, duration };
             } catch (error) {
                 const duration = Math.round(performance.now() - start);
-                logSupabaseError(`bootstrap:${label} falló en ${duration}ms`, error);
+                logCloudError(`bootstrap:${label} falló en ${duration}ms`, error);
                 showToast(`Aviso: ${label} no cargó a tiempo`);
                 return { ok: false, label, duration, error };
             }
@@ -998,7 +1263,7 @@
                     session = data?.session || null;
                 } catch (error) {
                     const duration = Math.round(performance.now() - sessionStart);
-                    logSupabaseError(`bootstrap:sesion falló en ${duration}ms`, error);
+                    logCloudError(`bootstrap:sesion falló en ${duration}ms`, error);
                     showToast('Aviso: no se pudo validar la sesión con la nube');
                     session = null;
                 }
@@ -1015,7 +1280,7 @@
                     loadSolicitudesForSession(session)
                 ]);
             } catch (err) {
-                logSupabaseError('Error crítico de conexión con la nube', err);
+                logCloudError('Error crítico de conexión con la nube', err);
                 showToast("Aviso: conexión lenta con la nube");
             } finally {
                 verificarEstadoBotonesAdmin();
@@ -1053,7 +1318,7 @@
                 document.getElementById('login-password').value = '';
                 showToast('Sesión iniciada');
             } catch (error) {
-                const kind = logSupabaseError('login admin', error);
+                const kind = logCloudError('login admin', error);
                 if (kind === 'network') {
                     alert('No se pudo conectar con el servidor de autenticación.');
                 } else if (kind === 'invalid_credentials') {
@@ -1126,7 +1391,7 @@
                 saveLocalSnapshot();
                 return true;
             } catch (error) {
-                logSupabaseError('refreshAsignacionesFromCloud', error);
+                logCloudError('refreshAsignacionesFromCloud', error);
                 throw error;
             }
         }
@@ -1521,7 +1786,7 @@
                             
                             if (session) {
                                 try {
-                                    // 1. Borrar en Supabase (en el orden solicitado)
+                                    // 1. Borrar en Firebase (en el orden solicitado)
                                     await supabaseClient.from('asignaciones').delete().neq('date_key', '0');
                                     await supabaseClient.from('configuracion_dias').delete().neq('date_key', '0');
                                     await supabaseClient.from('configuracion_base').delete().neq('dia', -999);
@@ -1573,8 +1838,8 @@
                                         if (e5) throw e5;
                                     }
                                 } catch (sbErr) {
-                                    console.error('Error Supabase Restore:', sbErr);
-                                    alert('Fallo al sincronizar con Supabase. Restauración cancelada.');
+                                    console.error('Error Firebase Restore:', sbErr);
+                                    alert('Fallo al sincronizar con Firebase. Restauración cancelada.');
                                     return;
                                 }
                             } else {
@@ -1662,7 +1927,7 @@
                 showToast('Guardado en la nube');
                 renderTodo();
             } catch (err) {
-                logSupabaseError(`guardar asignación ${key}`, err);
+                logCloudError(`guardar asignación ${key}`, err);
                 selectEl.value = valorAnterior;
                 selectEl.title = 'Debes confirmar el cambio';
                 if (statusEl) {
@@ -1767,7 +2032,7 @@
                     assignmentSource = 'cache';
                     showToast('Usando copia local de asignaciones');
                 } else {
-                    logSupabaseError('descargarImagen:refreshAsignaciones', err);
+                    logCloudError('descargarImagen:refreshAsignaciones', err);
                     alert(err.message || "Error: No se pudieron refrescar las asignaciones desde la nube.");
                     return;
                 }
