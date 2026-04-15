@@ -159,32 +159,6 @@
                 border-radius: 10px !important;
             }
             /* Menús desplegables para móvil (evitar problemas de hover) */
-            .group-hover\:block {
-                position: fixed !important;
-                top: auto !important;
-                bottom: 20px !important;
-                left: 10px !important;
-                right: 10px !important;
-                width: auto !important;
-                z-index: 100 !important;
-            }
-            .group:active .group-hover\:block,
-            .group:focus-within .group-hover\:block {
-                display: block !important;
-            }
-            /* Garantizar que el dropdown se vea si se remueve la clase hidden por JS */
-            .animate-fade-in:not(.hidden) {
-                display: block !important;
-            }
-            .group-hover\:block > div {
-                box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
-            }
-            #btn-image-menu {
-                justify-content: center;
-            }
-            #menu-image {
-                display: none !important;
-            }
             #image-sheet-backdrop.hidden {
                 display: none !important;
             }
@@ -541,13 +515,13 @@
                 </div>
 
                 <!-- Menú Desplegable IMAGEN -->
-                <div class="relative z-30" id="image-menu-wrapper">
-                    <button type="button" id="btn-image-menu" aria-expanded="false" aria-controls="menu-image" style="touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all cursor-pointer select-none">
+                <div class="relative z-30 hidden sm:block" id="image-menu-desktop-wrapper">
+                    <button type="button" id="btn-image-desktop" aria-expanded="false" aria-controls="menu-image-desktop"
+                        class="hidden sm:flex bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm items-center gap-2 transition-all cursor-pointer">
                         <i class="fas fa-image"></i> <span class="hidden sm:inline">Imagen</span> <i
                             class="fas fa-chevron-down text-xs ml-1 opacity-70"></i>
                     </button>
-                    <div id="menu-image"
+                    <div id="menu-image-desktop"
                         class="absolute right-0 top-full mt-2 w-56 hidden z-[120] pointer-events-auto animate-fade-in">
                         <div class="bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
                             <button onclick="descargarImagen('dispo')" data-image-action="true"
@@ -561,6 +535,14 @@
                         </div>
                     </div>
                 </div>
+
+                <button type="button" id="btn-image-mobile" aria-controls="image-sheet-backdrop"
+                    onclick="openImageSheetMobile()"
+                    ontouchstart="openImageSheetMobile(); return false;"
+                    style="touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;"
+                    class="flex sm:hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm items-center gap-2 transition-all cursor-pointer select-none">
+                    <i class="fas fa-image"></i> <span>Imagen</span>
+                </button>
 
                 <!-- Botón PDF -->
                 <button onclick="window.print()"
@@ -585,19 +567,19 @@
         </div>
     </header>
 
-    <div id="image-sheet-backdrop" class="fixed inset-0 hidden bg-slate-950/55 z-[140] p-4">
-        <div id="image-sheet-panel" class="w-full max-w-md bg-white shadow-2xl border border-slate-100 rounded-t-3xl rounded-b-2xl overflow-hidden">
+    <div id="image-sheet-backdrop" class="fixed inset-0 hidden bg-slate-950/55 z-[140] p-4" onclick="closeImageSheetMobile()" ontouchstart="closeImageSheetMobile(); return false;">
+        <div id="image-sheet-panel" class="w-full max-w-md bg-white shadow-2xl border border-slate-100 rounded-t-3xl rounded-b-2xl overflow-hidden" onclick="event.stopPropagation()">
             <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
                 <div>
                     <h3 class="text-base font-bold text-slate-800">Exportar Imagen</h3>
                     <p class="text-xs text-slate-500 mt-1">Elige el tipo de imagen que quieres generar</p>
                 </div>
-                <button type="button" id="btn-close-image-sheet" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer select-none" style="-webkit-tap-highlight-color: transparent; user-select: none;" aria-label="Cerrar opciones de imagen">
+                <button type="button" id="btn-close-image-sheet" onclick="closeImageSheetMobile()" ontouchstart="closeImageSheetMobile(); return false;" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer select-none" style="-webkit-tap-highlight-color: transparent; user-select: none;" aria-label="Cerrar opciones de imagen">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="p-4 space-y-3">
-                <button type="button" id="btn-image-sheet-dispo" data-image-action="true"
+                <button type="button" id="btn-image-sheet-dispo" data-image-action="true" onclick="handleImageDispoMobile()" ontouchstart="handleImageDispoMobile(); return false;"
                     style="-webkit-tap-highlight-color: transparent; user-select: none;"
                     class="w-full text-left px-4 py-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center gap-3 transition-colors cursor-pointer select-none">
                     <span class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
@@ -608,7 +590,7 @@
                         <span class="block text-xs text-slate-500 mt-1">Genera la vista de fechas disponibles</span>
                     </span>
                 </button>
-                <button type="button" id="btn-image-sheet-asignado" data-image-action="true"
+                <button type="button" id="btn-image-sheet-asignado" data-image-action="true" onclick="handleImageAsignadoMobile()" ontouchstart="handleImageAsignadoMobile(); return false;"
                     style="-webkit-tap-highlight-color: transparent; user-select: none;"
                     class="w-full text-left px-4 py-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center gap-3 transition-colors cursor-pointer select-none">
                     <span class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center flex-shrink-0">
@@ -1239,123 +1221,64 @@
             });
         }
 
-        function setupHeaderInteractions() {
-            const imageMenuButton = document.getElementById('btn-image-menu');
-            const imageMenu = document.getElementById('menu-image');
-            const imageMenuWrapper = document.getElementById('image-menu-wrapper');
-            const imageSheetBackdrop = document.getElementById('image-sheet-backdrop');
-            const imageSheetPanel = document.getElementById('image-sheet-panel');
-            const closeImageSheetButton = document.getElementById('btn-close-image-sheet');
-            const imageSheetDispoButton = document.getElementById('btn-image-sheet-dispo');
-            const imageSheetAsignadoButton = document.getElementById('btn-image-sheet-asignado');
+        function openImageSheetMobile() {
+            const sheet = document.getElementById('image-sheet-backdrop');
+            if (!sheet) return;
+            sheet.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeImageSheetMobile() {
+            const sheet = document.getElementById('image-sheet-backdrop');
+            if (!sheet) return;
+            sheet.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        function handleImageDispoMobile() {
+            closeImageSheetMobile();
+            descargarImagen('dispo');
+        }
+
+        function handleImageAsignadoMobile() {
+            closeImageSheetMobile();
+            descargarImagen('asignado');
+        }
+
+        function setupDesktopImageMenu() {
+            const imageMenuButton = document.getElementById('btn-image-desktop');
+            const imageMenu = document.getElementById('menu-image-desktop');
+            const imageMenuWrapper = document.getElementById('image-menu-desktop-wrapper');
 
             if (!imageMenuButton || !imageMenu || !imageMenuWrapper) return;
             if (imageMenuButton.dataset.bound === 'true') return;
             imageMenuButton.dataset.bound = 'true';
 
-            const isMobileImageUI = () => window.innerWidth <= 640;
-            const mobileInteractionEvent = typeof window.PointerEvent === 'function' ? 'pointerdown' : 'touchstart';
-
-            const bindPrimaryInteraction = (element, handler) => {
-                if (!element) return;
-
-                if (isMobileImageUI()) {
-                    element.addEventListener(mobileInteractionEvent, (event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        handler(event);
-                    }, { passive: false });
-                    return;
-                }
-
-                element.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    handler(event);
-                });
-            };
-
-            const closeImageMenu = () => {
+            const closeImageMenuDesktop = () => {
                 imageMenu.classList.add('hidden');
                 imageMenuButton.setAttribute('aria-expanded', 'false');
             };
 
-            const openImageSheet = () => {
-                if (!imageSheetBackdrop) return;
-                closeImageMenu();
-                imageSheetBackdrop.classList.remove('hidden');
-                document.body.classList.add('overflow-hidden');
-                imageMenuButton.setAttribute('aria-expanded', 'true');
-            };
-
-            const closeImageSheet = () => {
-                if (!imageSheetBackdrop) return;
-                imageSheetBackdrop.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden');
-                imageMenuButton.setAttribute('aria-expanded', 'false');
-            };
-
-            const toggleImageMenu = (event) => {
-                if (isMobileImageUI()) {
-                    const isSheetHidden = imageSheetBackdrop ? imageSheetBackdrop.classList.contains('hidden') : true;
-                    if (isSheetHidden) {
-                        openImageSheet();
-                    } else {
-                        closeImageSheet();
-                    }
+            const toggleImageMenuDesktop = (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const isHidden = imageMenu.classList.contains('hidden');
+                if (isHidden) {
+                    imageMenu.classList.remove('hidden');
+                    imageMenuButton.setAttribute('aria-expanded', 'true');
                 } else {
-                    closeImageSheet();
-                    const isHidden = imageMenu.classList.contains('hidden');
-                    if (isHidden) {
-                        imageMenu.classList.remove('hidden');
-                        imageMenuButton.setAttribute('aria-expanded', 'true');
-                    } else {
-                        closeImageMenu();
-                    }
+                    closeImageMenuDesktop();
                 }
             };
 
-            bindPrimaryInteraction(imageMenuButton, toggleImageMenu);
-
+            imageMenuButton.addEventListener('click', toggleImageMenuDesktop);
             imageMenu.addEventListener('click', (event) => event.stopPropagation());
 
             document.addEventListener('click', (event) => {
-                if (!isMobileImageUI() && !imageMenuWrapper.contains(event.target)) closeImageMenu();
+                if (!imageMenuWrapper.contains(event.target)) closeImageMenuDesktop();
             });
 
-            if (imageSheetPanel) {
-                imageSheetPanel.addEventListener('click', (event) => event.stopPropagation());
-            }
-
-            if (imageSheetBackdrop) {
-                bindPrimaryInteraction(imageSheetBackdrop, closeImageSheet);
-            }
-
-            if (closeImageSheetButton) {
-                bindPrimaryInteraction(closeImageSheetButton, closeImageSheet);
-            }
-
-            if (imageSheetDispoButton) {
-                bindPrimaryInteraction(imageSheetDispoButton, () => {
-                    closeImageSheet();
-                    descargarImagen('dispo');
-                });
-            }
-
-            if (imageSheetAsignadoButton) {
-                bindPrimaryInteraction(imageSheetAsignadoButton, () => {
-                    closeImageSheet();
-                    descargarImagen('asignado');
-                });
-            }
-
-            window.addEventListener('resize', () => {
-                if (isMobileImageUI()) {
-                    closeImageMenu();
-                } else {
-                    closeImageSheet();
-                }
-            });
+            window.addEventListener('resize', closeImageMenuDesktop);
         }
 
         async function loadSolicitudesForSession(currentSession) {
@@ -1471,7 +1394,7 @@
             renderTodo();
             document.getElementById('pdf-gen-date').innerText = new Date().toLocaleDateString();
             verificarEstadoBotonesAdmin();
-            setupHeaderInteractions();
+            setupDesktopImageMenu();
             void bootstrapCloudData();
         }
 
