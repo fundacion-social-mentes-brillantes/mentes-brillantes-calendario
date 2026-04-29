@@ -213,35 +213,104 @@
             position: absolute;
             top: -9999px;
             left: -9999px;
-            background: white;
+            background: #fffaf0;
             z-index: -1;
+            overflow: hidden;
+            border-radius: 28px;
+            box-shadow: 0 26px 70px rgba(16, 42, 86, 0.18);
         }
 
         .flyer-header {
-            background: linear-gradient(135deg, #102a56 0%, #183b72 100%);
-            padding: 40px;
+            background:
+                radial-gradient(circle at 88% 18%, rgba(214, 181, 94, 0.24), transparent 13rem),
+                linear-gradient(135deg, #102a56 0%, #183b72 100%);
+            padding: 34px 42px 32px;
             color: white;
-            border-bottom: 6px solid #d6b55e;
+            border-bottom: 7px solid #d6b55e;
+            position: relative;
+        }
+
+        .flyer-header::after {
+            content: "";
+            position: absolute;
+            inset: auto 42px 0 42px;
+            height: 1px;
+            background: rgba(255, 250, 240, 0.25);
+        }
+
+        .flyer-logo-card {
+            width: 112px;
+            height: 86px;
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 4px;
+            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.18);
+            border: 1px solid rgba(214, 181, 94, 0.6);
+            overflow: hidden;
+        }
+
+        .flyer-logo-card .brand-logo-img {
+            width: 122%;
+            height: 122%;
+            transform: scale(1.2);
+        }
+
+        .flyer-kicker {
+            color: #f4e8bf;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+        }
+
+        .flyer-title {
+            font-size: 34px;
+            line-height: 1;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+        }
+
+        .flyer-subtitle {
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 12px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .flyer-month-card {
+            text-align: right;
+            min-width: 230px;
+        }
+
+        .flyer-month-label {
+            color: rgba(244, 232, 191, 0.9);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
         }
 
         .flyer-body {
-            padding: 40px;
+            padding: 34px 38px 30px;
             background:
+                radial-gradient(circle at 12% 0%, rgba(214, 181, 94, 0.18), transparent 16rem),
                 linear-gradient(180deg, #fffaf0 0%, #ffffff 100%),
                 radial-gradient(rgba(214, 181, 94, 0.18) 1px, transparent 1px);
-            background-size: auto, 22px 22px;
+            background-size: auto, auto, 22px 22px;
         }
 
         .flyer-row {
-            display: flex;
+            display: grid;
+            grid-template-columns: 78px 1fr auto;
+            column-gap: 18px;
             align-items: center;
-            background: white;
-            margin-bottom: 15px;
-            padding: 15px 20px;
-            border-radius: 12px;
-            box-shadow: 0 14px 28px rgba(16, 42, 86, 0.08);
-            border: 1px solid rgba(214, 181, 94, 0.18);
-            border-left: 5px solid transparent;
+            background: rgba(255, 255, 255, 0.94);
+            margin-bottom: 11px;
+            padding: 12px 16px 12px 12px;
+            border-radius: 18px;
+            box-shadow: 0 12px 26px rgba(16, 42, 86, 0.08);
+            border: 1px solid rgba(214, 181, 94, 0.22);
+            border-left: 6px solid transparent;
         }
 
         .flyer-row.virtual {
@@ -253,48 +322,124 @@
         }
 
         .flyer-row.festivo {
-            border-left-color: #ef4444;
-            background: #fef2f2;
-            opacity: 0.8;
+            border-left-color: #ef9a9a;
+            background: linear-gradient(180deg, #fff7f7 0%, #ffffff 100%);
+            opacity: 0.92;
         }
 
         .flyer-date {
             text-align: center;
-            padding-right: 20px;
-            border-right: 2px solid #f1f5f9;
-            min-width: 90px;
+            min-width: 0;
+            background: linear-gradient(180deg, #102a56 0%, #183b72 100%);
+            border-radius: 14px;
+            padding: 9px 8px;
+            color: white;
+            border: 1px solid rgba(214, 181, 94, 0.45);
+            box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.14);
+        }
+
+        .flyer-row.presencial .flyer-date {
+            background: linear-gradient(180deg, #d6b55e 0%, #a98225 100%);
+        }
+
+        .flyer-row.festivo .flyer-date {
+            background: linear-gradient(180deg, #ef9a9a 0%, #dc6262 100%);
         }
 
         .flyer-content {
-            flex: 1;
-            padding-left: 20px;
+            min-width: 0;
         }
 
-        .flyer-status {
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 12px;
-            padding: 6px 12px;
-            border-radius: 20px;
+        .flyer-activity {
+            color: #102a56;
+            font-size: 17px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .flyer-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 7px;
+            flex-wrap: wrap;
+        }
+
+        .flyer-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border-radius: 999px;
+            padding: 5px 9px;
+            font-size: 11px;
+            font-weight: 800;
+            border: 1px solid rgba(214, 181, 94, 0.25);
+            background: #fffaf0;
+            color: #475569;
             white-space: nowrap;
         }
 
-        .status-badge-ok {
+        .flyer-pill.virtual {
+            background: #eef4ff;
+            color: #102a56;
+            border-color: #b8c8e3;
+        }
+
+        .flyer-pill.presencial {
             background: #f8efd0;
+            color: #765714;
+            border-color: #e4ca7b;
+        }
+
+        .flyer-status {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 11px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            white-space: nowrap;
+            min-width: 112px;
+            box-shadow: 0 8px 18px rgba(16, 42, 86, 0.08);
+        }
+
+        .status-badge-ok {
+            background: linear-gradient(180deg, #fff6d7 0%, #f4df9c 100%);
             color: #765714;
             border: 1px solid #e4ca7b;
         }
 
         .status-badge-empty {
-            background: #f1f5f9;
+            background: #f8fafc;
             color: #64748b;
             border: 1px dashed #cbd5e1;
         }
 
         .status-badge-assigned {
-            background: #eff6ff;
+            background: linear-gradient(180deg, #f4f8ff 0%, #e3edff 100%);
             color: #102a56;
             border: 1px solid #b8c8e3;
+        }
+
+        .status-badge-cancelled {
+            background: linear-gradient(180deg, #fff5f5 0%, #ffe3e3 100%);
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .flyer-footer {
+            background: linear-gradient(180deg, #ffffff 0%, #fffaf0 100%);
+            padding: 20px 38px;
+            color: #64748b;
+            font-size: 12px;
+            border-top: 1px solid rgba(214, 181, 94, 0.22);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
         }
 
         /* --- MOBILE UX SURGICAL ADJUSTMENTS --- */
@@ -790,24 +935,26 @@
         <div class="flyer-header">
             <div class="flex justify-between items-center">
                 <div class="flex items-center gap-5">
-                    <div class="w-24 h-20 bg-white rounded-xl p-2 shadow-lg border border-[#d6b55e]/40">
+                    <div class="flyer-logo-card">
                         <img src="assets/mentes-brillantes-logo.jpeg" alt="Gimnasio Emocional Mentes Brillantes" class="brand-logo-img">
                     </div>
                     <div>
-                        <h1 class="text-3xl font-bold uppercase tracking-wide brand-font">Mentes Brillantes</h1>
-                        <p class="text-[#f4e8bf] mt-1 font-medium tracking-wider text-sm">GIMNASIO EMOCIONAL</p>
-                        <p class="text-white/80 text-xs font-light tracking-widest mt-0.5">SERVICIO DE COORDINACIÓN</p>
+                        <p class="flyer-kicker">Gimnasio Emocional</p>
+                        <h1 class="flyer-title brand-font">Mentes Brillantes</h1>
+                        <p class="flyer-subtitle mt-2">Programaci&oacute;n mensual</p>
                     </div>
                 </div>
-                <div class="text-right">
-                    <div class="text-5xl font-light" id="flyer-month">FEBRERO</div>
-                    <div class="text-xl font-bold text-[#f4e8bf]">2026</div>
+                <div class="flyer-month-card">
+                    <div class="flyer-month-label">Calendario</div>
+                    <div class="text-5xl font-light leading-none mt-1" id="flyer-month">FEBRERO</div>
+                    <div class="text-xl font-bold text-[#f4e8bf] mt-1">2026</div>
                 </div>
             </div>
         </div>
         <div class="flyer-body" id="flyer-list"></div>
-        <div class="bg-slate-100 p-6 text-center text-slate-400 text-xs border-t border-slate-200">
-            <p>Programación sujeta a cambios • Gimnasio Emocional Mentes Brillantes</p>
+        <div class="flyer-footer">
+            <p>Programaci&oacute;n sujeta a cambios</p>
+            <p class="font-bold text-[#102a56]">Gimnasio Emocional Mentes Brillantes</p>
         </div>
     </div>
 
@@ -2485,21 +2632,21 @@
 
                         let rowClass = isHoliday ? 'festivo' : (isVirtual ? 'virtual' : 'presencial');
                         let statusBadge = '';
-                        if (isHoliday) statusBadge = `<span class="text-red-500 font-bold italic text-sm">CANCELADO</span>`;
-                        else if (modo === 'dispo') statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned">OCUPADO</span>` : `<span class="flyer-status status-badge-ok">DISPONIBLE</span>`;
-                        else statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned"><i class="fas fa-user-check mr-1"></i> ${assignedTo}</span>` : `<span class="flyer-status status-badge-empty">SIN ASIGNAR</span>`;
+                        if (isHoliday) statusBadge = `<span class="flyer-status status-badge-cancelled"><i class="far fa-calendar-times"></i> Cancelado</span>`;
+                        else if (modo === 'dispo') statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned"><i class="fas fa-lock"></i> Ocupado</span>` : `<span class="flyer-status status-badge-ok"><i class="fas fa-check"></i> Disponible</span>`;
+                        else statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned"><i class="fas fa-user-check"></i> ${assignedTo}</span>` : `<span class="flyer-status status-badge-empty"><i class="far fa-circle"></i> Sin asignar</span>`;
 
                         flyerList.innerHTML += `
                             <div class="flyer-row ${rowClass}">
                                 <div class="flyer-date">
-                                    <div class="text-3xl font-bold text-slate-800">${current.getDate()}</div>
-                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${dayAbbr}</div>
+                                    <div class="text-3xl font-bold leading-none">${current.getDate()}</div>
+                                    <div class="text-[10px] font-bold text-white/80 uppercase tracking-wider mt-1">${dayAbbr}</div>
                                 </div>
                                 <div class="flyer-content">
-                                    <div class="text-slate-800 font-bold text-lg leading-tight ${isHoliday ? 'line-through opacity-50' : ''}">${actividad}</div>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        ${!isHoliday ? `<span class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 rounded"><i class="far fa-clock text-[10px] mr-1"></i>${horario}</span>` : ''}
-                                        <span class="text-[10px] font-semibold uppercase ${isVirtual ? 'text-[#102a56]' : 'text-[#8a691b]'}">${!isHoliday ? `<i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'} mr-1"></i>${modalLabel}` : ''}</span>
+                                    <div class="flyer-activity ${isHoliday ? 'line-through opacity-50' : ''}">${actividad}</div>
+                                    <div class="flyer-meta">
+                                        ${!isHoliday ? `<span class="flyer-pill"><i class="far fa-clock"></i>${horario}</span>` : `<span class="flyer-pill"><i class="far fa-calendar-times"></i>Fecha no programable</span>`}
+                                        <span class="flyer-pill ${isVirtual ? 'virtual' : 'presencial'}">${!isHoliday ? `<i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'}"></i>${modalLabel}` : 'Festivo'}</span>
                                     </div>
                                 </div>
                                 <div>${statusBadge}</div>
@@ -2581,21 +2728,21 @@
 
                         let rowClass = isHoliday ? 'festivo' : (isVirtual ? 'virtual' : 'presencial');
                         let statusBadge = '';
-                        if (isHoliday) statusBadge = `<span class="text-red-500 font-bold italic text-sm">CANCELADO</span>`;
-                        else if (modo === 'dispo') statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned">OCUPADO</span>` : `<span class="flyer-status status-badge-ok">DISPONIBLE</span>`;
-                        else statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned"><i class="fas fa-user-check mr-1"></i> ${assignedTo}</span>` : `<span class="flyer-status status-badge-empty">SIN ASIGNAR</span>`;
+                        if (isHoliday) statusBadge = `<span class="flyer-status status-badge-cancelled"><i class="far fa-calendar-times"></i> Cancelado</span>`;
+                        else if (modo === 'dispo') statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned"><i class="fas fa-lock"></i> Ocupado</span>` : `<span class="flyer-status status-badge-ok"><i class="fas fa-check"></i> Disponible</span>`;
+                        else statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned"><i class="fas fa-user-check"></i> ${assignedTo}</span>` : `<span class="flyer-status status-badge-empty"><i class="far fa-circle"></i> Sin asignar</span>`;
 
                         flyerList.innerHTML += `
                             <div class="flyer-row ${rowClass}">
                                 <div class="flyer-date">
-                                    <div class="text-3xl font-bold text-slate-800">${current.getDate()}</div>
-                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${dayAbbr}</div>
+                                    <div class="text-3xl font-bold leading-none">${current.getDate()}</div>
+                                    <div class="text-[10px] font-bold text-white/80 uppercase tracking-wider mt-1">${dayAbbr}</div>
                                 </div>
                                 <div class="flyer-content">
-                                    <div class="text-slate-800 font-bold text-lg leading-tight ${isHoliday ? 'line-through opacity-50' : ''}">${actividad}</div>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        ${!isHoliday ? `<span class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 rounded"><i class="far fa-clock text-[10px] mr-1"></i>${horario}</span>` : ''}
-                                        <span class="text-[10px] font-semibold uppercase ${isVirtual ? 'text-[#102a56]' : 'text-[#8a691b]'}">${!isHoliday ? `<i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'} mr-1"></i>${modalLabel}` : ''}</span>
+                                    <div class="flyer-activity ${isHoliday ? 'line-through opacity-50' : ''}">${actividad}</div>
+                                    <div class="flyer-meta">
+                                        ${!isHoliday ? `<span class="flyer-pill"><i class="far fa-clock"></i>${horario}</span>` : `<span class="flyer-pill"><i class="far fa-calendar-times"></i>Fecha no programable</span>`}
+                                        <span class="flyer-pill ${isVirtual ? 'virtual' : 'presencial'}">${!isHoliday ? `<i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'}"></i>${modalLabel}` : 'Festivo'}</span>
                                     </div>
                                 </div>
                                 <div>${statusBadge}</div>
