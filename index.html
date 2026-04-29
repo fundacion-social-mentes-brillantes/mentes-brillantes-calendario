@@ -433,21 +433,32 @@
 
             .pdf-badge {
                 padding: 3px 6px;
-                border-radius: 4px;
+                border-radius: 999px;
                 font-size: 9px;
                 font-weight: bold;
                 text-transform: uppercase;
-                display: inline-block;
+                display: inline-flex;
+                align-items: center;
+                gap: 3px;
+                border: 1px solid transparent;
             }
 
             .pdf-badge-virtual {
-                background-color: #f3e8ff !important;
-                color: #7e22ce !important;
+                background-color: #eef4ff !important;
+                color: #102a56 !important;
+                border-color: #b8c8e3 !important;
             }
 
             .pdf-badge-presencial {
-                background-color: #dcfce7 !important;
-                color: #15803d !important;
+                background-color: #f8efd0 !important;
+                color: #765714 !important;
+                border-color: #e4ca7b !important;
+            }
+
+            .pdf-badge-festivo {
+                background-color: #fef2f2 !important;
+                color: #dc2626 !important;
+                border-color: #fecaca !important;
             }
 
             .pdf-footer {
@@ -476,18 +487,18 @@
     <input type="file" id="input-backup" class="hidden" accept=".json" onchange="cargarBackup(this)">
 
     <!-- MODAL CONFIGURACIÓN GLOBAL BASE -->
-    <div id="modal-config-base"
+    <div id="modal-config-base" role="dialog" aria-modal="true" aria-labelledby="modal-config-base-title"
         class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all animate-fade-in max-h-[90vh] flex flex-col modal-panel">
             <div
                 class="modal-heading p-6 flex justify-between items-center text-white shrink-0">
                 <div>
-                    <h3 class="font-bold text-xl brand-font">Configuración Base (Global)</h3>
+                    <h3 id="modal-config-base-title" class="font-bold text-xl brand-font">Configuración Base (Global)</h3>
                     <p class="text-xs text-slate-300 mt-1">Define los días activos, actividades y horarios por defecto
                         para todo el año.</p>
                 </div>
-                <button onclick="cerrarModalConfigBase()" class="hover:bg-white/20 p-2 rounded-full transition-colors">
+                <button onclick="cerrarModalConfigBase()" aria-label="Cerrar configuración base" class="hover:bg-white/20 p-2 rounded-full transition-colors">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -506,14 +517,14 @@
     </div>
 
     <!-- MODAL EDITAR ACTIVIDAD/HORARIO -->
-    <div id="modal-editar-dia"
+    <div id="modal-editar-dia" role="dialog" aria-modal="true" aria-labelledby="modal-editar-dia-title"
         class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-fade-in modal-panel">
             <div
                 class="modal-heading p-6 flex justify-between items-center text-white">
-                <h3 class="font-bold text-xl brand-font">Editar Actividad</h3>
-                <button onclick="cerrarModalEdicion()" class="hover:bg-white/20 p-2 rounded-full transition-colors">
+                <h3 id="modal-editar-dia-title" class="font-bold text-xl brand-font">Editar Actividad</h3>
+                <button onclick="cerrarModalEdicion()" aria-label="Cerrar edición de actividad" class="hover:bg-white/20 p-2 rounded-full transition-colors">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -547,13 +558,13 @@
     </div>
 
     <!-- MODAL GESTIÓN DE EQUIPO -->
-    <div id="modal-mentores"
+    <div id="modal-mentores" role="dialog" aria-modal="true" aria-labelledby="modal-mentores-title"
         class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-fade-in modal-panel">
             <div class="modal-heading p-6 flex justify-between items-center text-white">
-                <h3 class="font-bold text-xl brand-font">Gestión de Equipo</h3>
-                <button onclick="toggleModal(false)" class="hover:bg-white/20 p-2 rounded-full transition-colors">
+                <h3 id="modal-mentores-title" class="font-bold text-xl brand-font">Gestión de Equipo</h3>
+                <button onclick="toggleModal(false)" aria-label="Cerrar gestión de equipo" class="hover:bg-white/20 p-2 rounded-full transition-colors">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -577,11 +588,11 @@
     </div>
 
     <!-- MODAL LOGIN ADMIN -->
-    <div id="modal-login" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
+    <div id="modal-login" role="dialog" aria-modal="true" aria-labelledby="modal-login-title" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all modal-panel">
             <div class="modal-heading p-6 flex justify-between items-center text-white">
-                <h3 class="font-bold text-xl brand-font">Acceso Administrador</h3>
-                <button onclick="document.getElementById('modal-login').classList.add('hidden')" class="hover:bg-white/20 p-2 rounded-full transition-colors"><i class="fas fa-times"></i></button>
+                <h3 id="modal-login-title" class="font-bold text-xl brand-font">Acceso Administrador</h3>
+                <button onclick="document.getElementById('modal-login').classList.add('hidden')" aria-label="Cerrar acceso administrador" class="hover:bg-white/20 p-2 rounded-full transition-colors"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-6">
                 <form onsubmit="iniciarSesion(event)" class="space-y-4">
@@ -621,20 +632,20 @@
 
                 <div class="h-8 w-px bg-slate-200 mx-2 hidden md:block"></div>
 
-                <button onclick="abrirModalConfigBase()" id="btn-config-admin"
+                <button onclick="abrirModalConfigBase()" id="btn-config-admin" aria-label="Abrir configuraciÃ³n base"
                     class="hidden p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                     title="Configuración Base de Días">
                     <i class="fas fa-cog text-lg"></i>
                 </button>
 
-                <button onclick="toggleModal(true)" id="btn-team-admin"
+                <button onclick="toggleModal(true)" id="btn-team-admin" aria-label="Gestionar mentores"
                     class="hidden p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                     title="Gestionar Mentores">
                     <i class="fas fa-users-cog text-lg"></i>
                 </button>
 
                 <!-- BOTON ADMIN SOLICITUDES -->
-                <button onclick="abrirModalSolicitudes()" id="btn-solicitudes-admin"
+                <button onclick="abrirModalSolicitudes()" id="btn-solicitudes-admin" aria-label="Ver solicitudes pendientes"
                     class="hidden relative p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
                     title="Ver Solicitudes Pendientes">
                     <i class="fas fa-inbox text-lg"></i>
@@ -643,12 +654,12 @@
 
                 <!-- Menú Desplegable BACKUP -->
                 <div class="relative group z-30 hidden" id="btn-backup-admin">
-                    <button
+                    <button type="button" id="btn-backup-menu" aria-expanded="false" aria-controls="menu-backup-admin"
                         class="btn-light-institutional px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all">
                         <i class="fas fa-database"></i> <span class="hidden sm:inline">Datos</span> <i
                             class="fas fa-chevron-down text-xs ml-1 opacity-70"></i>
                     </button>
-                    <div class="absolute right-0 top-full pt-2 w-48 hidden group-hover:block animate-fade-in">
+                    <div id="menu-backup-admin" class="absolute right-0 top-full pt-2 w-48 hidden group-hover:block animate-fade-in">
                         <div class="bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
                             <button onclick="descargarBackup('pendientes')"
                                 class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 text-slate-700 border-b border-slate-50 flex flex-col gap-0.5 hover:text-blue-600 transition-colors">
@@ -697,17 +708,17 @@
                 </button>
 
                 <!-- Botón PDF -->
-                <button onclick="window.print()"
+                <button onclick="window.print()" aria-label="Imprimir PDF"
                     class="btn-light-institutional px-3 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all"
                     title="Imprimir PDF Bonito">
-                    <i class="fas fa-print"></i>
+                    <i class="fas fa-print" aria-hidden="true"></i><span class="sr-only">Imprimir PDF</span>
                 </button>
 
                 <!-- Botón WhatsApp -->
-                <button onclick="copiarParaWhatsapp()"
+                <button onclick="copiarParaWhatsapp()" aria-label="Copiar texto para WhatsApp"
                     class="bg-[#1f9d67] hover:bg-[#188258] text-white px-3 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all"
                     title="Copiar Texto WhatsApp">
-                    <i class="fab fa-whatsapp text-lg"></i>
+                    <i class="fab fa-whatsapp text-lg" aria-hidden="true"></i><span class="sr-only">Copiar texto para WhatsApp</span>
                 </button>
 
                 <!-- Botón Login Admin -->
@@ -719,11 +730,11 @@
         </div>
     </header>
 
-    <div id="image-sheet-backdrop" class="fixed inset-0 hidden flex items-end justify-center bg-slate-950/55 z-[140] p-4 sm:hidden">
+    <div id="image-sheet-backdrop" role="dialog" aria-modal="true" aria-labelledby="image-sheet-title" class="fixed inset-0 hidden flex items-end justify-center bg-slate-950/55 z-[140] p-4 sm:hidden">
         <div id="image-sheet-panel" class="w-full max-w-md bg-white shadow-2xl border border-slate-100 rounded-t-3xl rounded-b-2xl overflow-hidden">
             <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
                 <div>
-                    <h3 class="text-base font-bold text-slate-800">Exportar Imagen</h3>
+                    <h3 id="image-sheet-title" class="text-base font-bold text-slate-800">Exportar Imagen</h3>
                     <p class="text-xs text-slate-500 mt-1">Elige el tipo de imagen que quieres generar</p>
                 </div>
                 <button type="button" id="btn-close-image-sheet" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer select-none" style="-webkit-tap-highlight-color: transparent; user-select: none;" aria-label="Cerrar opciones de imagen">
@@ -844,11 +855,11 @@
     </div>
 
     <!-- MODAL SOLICITUDES ADMINISTRADOR -->
-    <div id="modal-solicitudes" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
+    <div id="modal-solicitudes" role="dialog" aria-modal="true" aria-labelledby="modal-solicitudes-title" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all flex flex-col max-h-[90vh] modal-panel">
             <div class="modal-heading p-6 flex justify-between items-center text-white shrink-0">
-                <h3 class="font-bold text-xl"><i class="fas fa-inbox mr-2"></i> Solicitudes de Apartado</h3>
-                <button onclick="cerrarModalSolicitudes()" class="hover:bg-white/20 p-2 rounded-full transition-colors">
+                <h3 id="modal-solicitudes-title" class="font-bold text-xl"><i class="fas fa-inbox mr-2"></i> Solicitudes de Apartado</h3>
+                <button onclick="cerrarModalSolicitudes()" aria-label="Cerrar solicitudes" class="hover:bg-white/20 p-2 rounded-full transition-colors">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -859,11 +870,11 @@
     </div>
 
     <!-- MODAL APARTAR (PUBLICO) -->
-    <div id="modal-apartar" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
+    <div id="modal-apartar" role="dialog" aria-modal="true" aria-labelledby="modal-apartar-title" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all modal-panel">
             <div class="modal-heading p-5 flex justify-between items-center text-white shrink-0">
-                <h3 class="font-bold text-lg"><i class="far fa-calendar-plus mr-2"></i> Apartar Fecha</h3>
-                <button onclick="cerrarModalApartar()" class="hover:bg-white/20 p-2 rounded-full transition-colors">
+                <h3 id="modal-apartar-title" class="font-bold text-lg"><i class="far fa-calendar-plus mr-2"></i> Apartar Fecha</h3>
+                <button onclick="cerrarModalApartar()" aria-label="Cerrar apartado de fecha" class="hover:bg-white/20 p-2 rounded-full transition-colors">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -887,13 +898,13 @@
     </div>
 
     <!-- MODAL EXITO APARTAR -->
-    <div id="modal-apartar-exito" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
+    <div id="modal-apartar-exito" role="dialog" aria-modal="true" aria-labelledby="modal-apartar-exito-title" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all modal-panel">
             <div class="modal-heading p-5 text-center text-white">
                 <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
                     <i class="fas fa-check text-3xl"></i>
                 </div>
-                <h3 class="font-bold text-xl">¡Solicitud Enviada!</h3>
+                <h3 id="modal-apartar-exito-title" class="font-bold text-xl">¡Solicitud Enviada!</h3>
                 <p class="text-blue-100 text-xs mt-1">Tu fecha está siendo revisada</p>
             </div>
             <div class="p-6">
@@ -1504,6 +1515,72 @@
             window.addEventListener('resize', closeImageMenuDesktop);
         }
 
+        function setupBackupMenu() {
+            const backupButton = document.getElementById('btn-backup-menu');
+            const backupMenu = document.getElementById('menu-backup-admin');
+            const backupWrapper = document.getElementById('btn-backup-admin');
+
+            if (!backupButton || !backupMenu || !backupWrapper) return;
+            if (backupButton.dataset.bound === 'true') return;
+            backupButton.dataset.bound = 'true';
+
+            const closeBackupMenu = () => {
+                backupMenu.classList.add('hidden');
+                backupButton.setAttribute('aria-expanded', 'false');
+            };
+
+            const toggleBackupMenu = (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const isHidden = backupMenu.classList.contains('hidden');
+                if (isHidden) {
+                    backupMenu.classList.remove('hidden');
+                    backupButton.setAttribute('aria-expanded', 'true');
+                } else {
+                    closeBackupMenu();
+                }
+            };
+
+            backupButton.addEventListener('click', toggleBackupMenu);
+            backupMenu.addEventListener('click', (event) => event.stopPropagation());
+
+            document.addEventListener('click', (event) => {
+                if (!backupWrapper.contains(event.target)) closeBackupMenu();
+            });
+
+            window.addEventListener('resize', closeBackupMenu);
+        }
+
+        function setupModalEscapeClose() {
+            if (document.body.dataset.escapeBound === 'true') return;
+            document.body.dataset.escapeBound = 'true';
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key !== 'Escape') return;
+
+                const closers = [
+                    ['modal-apartar-exito', cerrarModalExito],
+                    ['modal-apartar', cerrarModalApartar],
+                    ['modal-solicitudes', cerrarModalSolicitudes],
+                    ['modal-login', () => document.getElementById('modal-login').classList.add('hidden')],
+                    ['modal-mentores', () => toggleModal(false)],
+                    ['modal-editar-dia', cerrarModalEdicion],
+                    ['modal-config-base', cerrarModalConfigBase],
+                    ['image-sheet-backdrop', closeImageSheetMobile]
+                ];
+
+                const active = closers.find(([id]) => {
+                    const el = document.getElementById(id);
+                    return el && !el.classList.contains('hidden');
+                });
+
+                if (active) {
+                    event.preventDefault();
+                    active[1]();
+                }
+            });
+        }
+
         async function loadSolicitudesForSession(currentSession) {
             if (currentSession) {
                 return timedQuery(
@@ -1598,13 +1675,20 @@
                     renderTodo();
                 });
 
-                await Promise.allSettled([
+                const cloudResults = await Promise.allSettled([
                     refreshDataFromCloud(),
                     loadSolicitudesForSession(session)
                 ]);
+                const cloudHadSuccess = cloudResults.some((result) => {
+                    if (result.status !== 'fulfilled') return false;
+                    const value = result.value;
+                    if (Array.isArray(value)) return value.some(item => item.status === 'fulfilled' && item.value?.ok);
+                    return value?.ok;
+                });
+                showToast(cloudHadSuccess ? 'Datos sincronizados' : 'Modo sin conexión: usando datos locales');
             } catch (err) {
                 logCloudError('Error crítico de conexión con la nube', err);
-                showToast("Aviso: conexión lenta con la nube");
+                showToast("Modo sin conexión: usando datos locales");
             } finally {
                 verificarEstadoBotonesAdmin();
                 renderTodo();
@@ -1619,6 +1703,8 @@
             verificarEstadoBotonesAdmin();
             bindImageSheetMobile();
             setupDesktopImageMenu();
+            setupBackupMenu();
+            setupModalEscapeClose();
             void bootstrapCloudData();
         }
 
@@ -1923,7 +2009,7 @@
                     <div class="mb-3 relative group">
                         <div class="flex justify-between items-start">
                             <h4 class="font-bold text-[#102a56] leading-tight text-sm pr-6 ${ev.isHoliday ? 'line-through opacity-50' : ''}">${ev.actividad}</h4>
-                            ${(!ev.isHoliday && session) ? `<button onclick="abrirModalEdicion('${ev.dateKey}', '${safeActividad}', '${safeHorario}')" class="text-slate-300 hover:text-indigo-600 transition-colors absolute right-0 top-0 opacity-0 group-hover:opacity-100 bg-white rounded-full p-1" title="Editar Actividad/Horario"><i class="fas fa-edit"></i></button>` : ''}
+                            ${(!ev.isHoliday && session) ? `<button onclick="abrirModalEdicion('${ev.dateKey}', '${safeActividad}', '${safeHorario}')" class="text-slate-300 hover:text-indigo-600 transition-colors absolute right-0 top-0 opacity-0 group-hover:opacity-100 bg-white rounded-full p-1" title="Editar Actividad/Horario" aria-label="Editar actividad y horario"><i class="fas fa-edit"></i></button>` : ''}
                         </div>
                         ${!ev.isHoliday ? `<div class="mt-2 flex items-center text-xs text-slate-500"><i class="far ${timeIcon} mr-1"></i> ${ev.horario}</div>` : ''}
                     </div>
@@ -1972,7 +2058,7 @@
                 let pdfStatus = '';
 
                 if (ev.isHoliday) {
-                    pdfBadge = '<span class="text-red-500 font-bold text-xs"><i class="far fa-calendar-times"></i> FESTIVO</span>';
+                    pdfBadge = '<span class="pdf-badge pdf-badge-festivo"><i class="far fa-calendar-times"></i> FESTIVO</span>';
                     pdfStatus = '<span class="text-red-400 italic text-xs">Cancelado</span>';
                 } else {
                     pdfBadge = `<span class="pdf-badge ${isVirtual ? 'pdf-badge-virtual' : 'pdf-badge-presencial'}"><i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'}"></i> ${modalLabel}</span>`;
@@ -2062,7 +2148,10 @@
 
         async function descargarBackup(tipo = 'pendientes') {
             showToast('Sincronizando antes de exportar...');
-            await refreshDataFromCloud();
+            const syncResults = await refreshDataFromCloud();
+            if (syncResults.some(result => result.status === 'rejected' || result.value?.ok === false)) {
+                showToast('Backup con los datos locales disponibles');
+            }
             let solicitudesGuardar = solicitudesPendientes;
             let solicitudesHistorial = null;
             
@@ -2305,7 +2394,7 @@
             list.innerHTML = mentores.map(m => `
                 <div class="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100 mb-2">
                     <span class="font-medium text-slate-700">${m}</span>
-                    <button onclick="borrarMentor('${m}')" class="text-slate-400 hover:text-red-500"><i class="fas fa-trash"></i></button>
+                    <button onclick="borrarMentor('${m}')" aria-label="Eliminar mentor ${m}" class="text-slate-400 hover:text-red-500"><i class="fas fa-trash"></i></button>
                 </div>
             `).join('') || '<p class="text-center text-slate-400 text-sm italic">Sin mentores</p>';
         }
