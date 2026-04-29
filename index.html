@@ -47,16 +47,24 @@
         }
 
         .brand-logo-img {
-            width: 100%;
-            height: 100%;
+            width: 118%;
+            height: 118%;
             object-fit: contain;
             display: block;
+            transform: scale(1.2);
+            transform-origin: center;
         }
 
         .brand-logo-mark {
             background: #ffffff;
-            border: 1px solid rgba(214, 181, 94, 0.35);
-            box-shadow: 0 14px 30px rgba(16, 42, 86, 0.12);
+            border: 1px solid rgba(214, 181, 94, 0.46);
+            box-shadow: 0 16px 34px rgba(16, 42, 86, 0.16), inset 0 0 0 1px rgba(255, 250, 240, 0.8);
+        }
+
+        .brand-logo-header {
+            width: 3.4rem;
+            height: 3.4rem;
+            padding: 0.08rem;
         }
 
         .btn-institutional {
@@ -74,6 +82,19 @@
             background: rgba(255, 255, 255, 0.9) !important;
             color: var(--mb-blue) !important;
             border: 1px solid rgba(214, 181, 94, 0.34) !important;
+        }
+
+        .btn-admin-subtle {
+            background: rgba(255, 255, 255, 0.72) !important;
+            color: #475569 !important;
+            border: 1px solid rgba(148, 163, 184, 0.35) !important;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.07) !important;
+        }
+
+        .btn-admin-subtle:hover {
+            color: var(--mb-blue) !important;
+            border-color: rgba(214, 181, 94, 0.45) !important;
+            background: #ffffff !important;
         }
 
         .modal-panel {
@@ -106,6 +127,9 @@
         }
 
         .institutional-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
             border-radius: 999px;
             padding: 0.35rem 0.65rem;
             font-weight: 800;
@@ -126,6 +150,36 @@
         .month-chip {
             border: 1px solid rgba(214, 181, 94, 0.3) !important;
             box-shadow: 0 8px 20px rgba(16, 42, 86, 0.06);
+        }
+
+        .mentor-select {
+            background: linear-gradient(180deg, #ffffff 0%, #fffaf0 100%) !important;
+            border: 1px solid rgba(214, 181, 94, 0.42) !important;
+            color: var(--mb-blue) !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 8px 18px rgba(16, 42, 86, 0.05);
+        }
+
+        .mentor-select:focus {
+            border-color: var(--mb-gold) !important;
+            box-shadow: 0 0 0 3px rgba(214, 181, 94, 0.18);
+        }
+
+        #meses-container {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(214, 181, 94, 0.34) transparent;
+        }
+
+        #meses-container::-webkit-scrollbar {
+            height: 5px;
+        }
+
+        #meses-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #meses-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(90deg, rgba(214, 181, 94, 0), rgba(214, 181, 94, 0.45), rgba(214, 181, 94, 0));
+            border-radius: 999px;
         }
 
         .month-chip-active {
@@ -550,7 +604,7 @@
         <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="header-logo flex items-center gap-3">
                 <div
-                    class="brand-logo-mark w-12 h-12 rounded-xl flex items-center justify-center p-1.5 overflow-hidden">
+                    class="brand-logo-mark brand-logo-header rounded-xl flex items-center justify-center overflow-hidden">
                     <img src="assets/mentes-brillantes-logo.jpeg" alt="Gimnasio Emocional Mentes Brillantes" class="brand-logo-img">
                 </div>
                 <div>
@@ -658,7 +712,7 @@
 
                 <!-- Botón Login Admin -->
                 <button onclick="toggleLogin()" id="btn-login-admin"
-                    class="btn-institutional px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all">
+                    class="btn-admin-subtle px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all">
                     <i class="fas fa-lock"></i> <span class="hidden sm:inline" id="txt-login-btn">Admin</span>
                 </button>
             </div>
@@ -709,7 +763,10 @@
         <div class="flex overflow-x-auto pb-4 gap-2 mb-6 custom-scrollbar" id="meses-container"></div>
         <!-- Título Mes -->
         <div class="flex justify-between items-end mb-6">
-            <h2 class="text-3xl font-bold text-[#102a56] brand-font" id="titulo-mes-actual">Febrero</h2>
+            <div>
+                <h2 class="text-3xl font-bold text-[#102a56] brand-font" id="titulo-mes-actual">Febrero</h2>
+                <p class="text-xs md:text-sm text-slate-500 font-semibold mt-1">Programaci&oacute;n mensual &middot; Gimnasio Emocional Mentes Brillantes</p>
+            </div>
             <span
                 class="text-sm font-semibold text-[#765714] bg-[#fffaf0] px-3 py-1 rounded-full border border-[#e5dcc2] shadow-sm">2026</span>
         </div>
@@ -1857,8 +1914,8 @@
                         </div>
                         <div class="text-right">
                              ${ev.isHoliday
-                        ? `<span class="px-2 py-1 rounded bg-red-100 text-red-600 text-xs font-bold">FESTIVO</span>`
-                        : `<span class="text-xs ${modClass}">${modalLabel}</span>`
+                        ? `<span class="institutional-badge bg-red-50 text-red-600 text-xs font-bold border-red-100"><i class="far fa-calendar-times"></i> FESTIVO</span>`
+                        : `<span class="text-xs ${modClass}"><i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'}"></i> ${modalLabel}</span>`
                     }
                              <div class="text-[10px] text-slate-400 mt-1">Sem ${ev.isoWeek}</div>
                         </div>
@@ -1875,7 +1932,7 @@
                     if (session) {
                         let selectHtml = `
                             <div class="relative pt-2 border-t border-slate-50">
-                                <select onchange="confirmarCambioAsignacion(this, '${ev.dateKey}')" data-prev-value="${ev.assignedTo}" title="Debes confirmar el cambio" class="w-full bg-[#fffaf0] border border-[#e5dcc2] text-slate-700 text-sm rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#d6b55e] cursor-pointer appearance-none">
+                                <select onchange="confirmarCambioAsignacion(this, '${ev.dateKey}')" data-prev-value="${ev.assignedTo}" title="Debes confirmar el cambio" class="mentor-select w-full text-sm rounded-lg p-2.5 outline-none cursor-pointer appearance-none">
                                     <option value="">Seleccionar Mentor...</option>
                                     ${mentores.map(m => `<option value="${m}" ${m === ev.assignedTo ? 'selected' : ''}>${m}</option>`).join('')}
                                 </select>
@@ -1915,10 +1972,10 @@
                 let pdfStatus = '';
 
                 if (ev.isHoliday) {
-                    pdfBadge = '<span class="text-red-500 font-bold text-xs">FESTIVO</span>';
+                    pdfBadge = '<span class="text-red-500 font-bold text-xs"><i class="far fa-calendar-times"></i> FESTIVO</span>';
                     pdfStatus = '<span class="text-red-400 italic text-xs">Cancelado</span>';
                 } else {
-                    pdfBadge = `<span class="pdf-badge ${isVirtual ? 'pdf-badge-virtual' : 'pdf-badge-presencial'}">${modalLabel}</span>`;
+                    pdfBadge = `<span class="pdf-badge ${isVirtual ? 'pdf-badge-virtual' : 'pdf-badge-presencial'}"><i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'}"></i> ${modalLabel}</span>`;
                     pdfStatus = ev.assignedTo
                         ? `<span class="font-bold text-slate-800 text-sm">${ev.assignedTo}</span>`
                         : `<span class="text-slate-400 italic text-xs border border-dashed border-slate-300 px-2 py-1 rounded">Disponible</span>`;
@@ -2353,7 +2410,7 @@
                                     <div class="text-slate-800 font-bold text-lg leading-tight ${isHoliday ? 'line-through opacity-50' : ''}">${actividad}</div>
                                     <div class="flex items-center gap-2 mt-1">
                                         ${!isHoliday ? `<span class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 rounded"><i class="far fa-clock text-[10px] mr-1"></i>${horario}</span>` : ''}
-                                        <span class="text-[10px] font-semibold uppercase ${isVirtual ? 'text-[#102a56]' : 'text-[#8a691b]'}">${!isHoliday ? modalLabel : ''}</span>
+                                        <span class="text-[10px] font-semibold uppercase ${isVirtual ? 'text-[#102a56]' : 'text-[#8a691b]'}">${!isHoliday ? `<i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'} mr-1"></i>${modalLabel}` : ''}</span>
                                     </div>
                                 </div>
                                 <div>${statusBadge}</div>
@@ -2449,7 +2506,7 @@
                                     <div class="text-slate-800 font-bold text-lg leading-tight ${isHoliday ? 'line-through opacity-50' : ''}">${actividad}</div>
                                     <div class="flex items-center gap-2 mt-1">
                                         ${!isHoliday ? `<span class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 rounded"><i class="far fa-clock text-[10px] mr-1"></i>${horario}</span>` : ''}
-                                        <span class="text-[10px] font-semibold uppercase ${isVirtual ? 'text-[#102a56]' : 'text-[#8a691b]'}">${!isHoliday ? modalLabel : ''}</span>
+                                        <span class="text-[10px] font-semibold uppercase ${isVirtual ? 'text-[#102a56]' : 'text-[#8a691b]'}">${!isHoliday ? `<i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'} mr-1"></i>${modalLabel}` : ''}</span>
                                     </div>
                                 </div>
                                 <div>${statusBadge}</div>
