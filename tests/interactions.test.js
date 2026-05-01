@@ -159,6 +159,21 @@ async function main() {
     await page.goto(url, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#meses-container button', { timeout: 7000 });
     await page.waitForSelector('#grid-web > div', { timeout: 7000 });
+    await page.waitForSelector('#month-summary-kpis [data-kpi]', { timeout: 7000 });
+
+    let kpis = await page.evaluate(() => [...document.querySelectorAll('#month-summary-kpis [data-kpi]')].map((card) => ({
+      key: card.dataset.kpi,
+      value: card.querySelector('.kpi-value')?.textContent.trim()
+    })));
+    assert(kpis.length === 4, 'No aparecen las 4 tarjetas KPI.');
+    assert(kpis.every((card) => card.value !== ''), 'Alguna tarjeta KPI no muestra numero.');
+
+    await page.getByRole('button', { name: 'Abril' }).click();
+    await page.waitForFunction(() => document.getElementById('titulo-mes-actual')?.textContent.trim() === 'Abril');
+    kpis = await page.evaluate(() => [...document.querySelectorAll('#month-summary-kpis [data-kpi]')].map((card) => card.dataset.kpi));
+    assert(kpis.length === 4, 'Las tarjetas KPI no siguen presentes al cambiar de mes.');
+    const holidayText = await page.evaluate(() => document.getElementById('grid-web').textContent);
+    assert(holidayText.includes('Jueves Santo') || holidayText.includes('Viernes Santo'), 'Los festivos no muestran explicacion visible.');
 
     const imageUi = await page.evaluate(() => ({
       hasDesktopMenu: !!document.getElementById('menu-image-desktop'),

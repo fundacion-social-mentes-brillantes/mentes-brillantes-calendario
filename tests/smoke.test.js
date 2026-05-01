@@ -123,6 +123,7 @@ async function main() {
     const checks = await page.evaluate(() => ({
       title: document.title,
       monthChips: document.querySelectorAll('#meses-container button').length,
+      kpiCards: document.querySelectorAll('#month-summary-kpis [data-kpi]').length,
       calendarCards: document.querySelectorAll('#grid-web > div').length,
       imageDesktop: !!document.getElementById('btn-image-desktop'),
       imageMobile: !!document.getElementById('btn-image-mobile'),
@@ -132,6 +133,7 @@ async function main() {
 
     if (!checks.title) throw new Error('La pagina no tiene titulo.');
     if (checks.monthChips < 1) throw new Error('No aparecen chips de meses.');
+    if (checks.kpiCards !== 4) throw new Error('No aparecen las 4 tarjetas KPI del mes.');
     if (checks.calendarCards < 1) throw new Error('No aparece el grid del calendario.');
     if (!checks.imageDesktop || !checks.imageMobile) throw new Error('No existe el boton Imagen.');
     if (!checks.whatsapp) throw new Error('No existe el boton WhatsApp.');

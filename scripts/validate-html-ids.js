@@ -8,6 +8,7 @@ const html = fs.readFileSync(htmlPath, 'utf8');
 const criticalIds = [
   'grid-web',
   'meses-container',
+  'month-summary-kpis',
   'capture-target',
   'modal-login',
   'btn-image-desktop',

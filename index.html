@@ -164,6 +164,66 @@
             box-shadow: 0 0 0 3px rgba(214, 181, 94, 0.18);
         }
 
+        .month-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .kpi-card {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 240, 0.9));
+            border: 1px solid rgba(214, 181, 94, 0.24);
+            border-radius: 18px;
+            padding: 1rem;
+            box-shadow: 0 16px 36px rgba(16, 42, 86, 0.08);
+        }
+
+        .kpi-card::after {
+            content: "";
+            position: absolute;
+            right: -1.25rem;
+            top: -1.25rem;
+            width: 4.5rem;
+            height: 4.5rem;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(214, 181, 94, 0.18), transparent 68%);
+        }
+
+        .kpi-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background: linear-gradient(135deg, var(--mb-blue), #173f7b);
+            box-shadow: inset 0 0 0 1px rgba(244, 232, 191, 0.28), 0 10px 22px rgba(16, 42, 86, 0.16);
+        }
+
+        .kpi-icon.gold {
+            background: linear-gradient(135deg, #c9a44a, #e6ca76);
+            color: #102a56;
+        }
+
+        .kpi-value {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--mb-blue);
+            font-size: 1.9rem;
+            line-height: 1;
+            font-weight: 800;
+        }
+
+        .holiday-note {
+            background: linear-gradient(135deg, #fff7ed 0%, #fff1f2 100%);
+            border: 1px solid rgba(248, 113, 113, 0.18);
+            border-radius: 14px;
+            padding: 0.75rem;
+            color: #7f1d1d;
+        }
+
         #meses-container {
             scrollbar-width: thin;
             scrollbar-color: rgba(214, 181, 94, 0.34) transparent;
@@ -187,6 +247,27 @@
             color: white !important;
             border-color: var(--mb-gold) !important;
             box-shadow: 0 12px 24px rgba(16, 42, 86, 0.18) !important;
+        }
+
+        @media (max-width: 640px) {
+            .month-summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.75rem;
+            }
+
+            .kpi-card {
+                padding: 0.85rem;
+                border-radius: 14px;
+            }
+
+            .kpi-icon {
+                width: 2.5rem;
+                height: 2.5rem;
+            }
+
+            .kpi-value {
+                font-size: 1.55rem;
+            }
         }
 
         /* Animaciones */
@@ -861,6 +942,7 @@
             <span
                 class="text-sm font-semibold text-[#765714] bg-[#fffaf0] px-3 py-1 rounded-full border border-[#e5dcc2] shadow-sm">2026</span>
         </div>
+        <section id="month-summary-kpis" class="month-summary-grid mb-7" aria-label="Resumen visual del mes"></section>
         <!-- Grid Web -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="grid-web"></div>
     </main>
@@ -1038,6 +1120,26 @@
             '2026-12-08', // Inmaculada (Mar)
             '2026-12-25'  // Navidad (Vie)
         ];
+        const FESTIVOS_INFO = {
+            '2026-01-01': { nombre: 'Año Nuevo', motivo: 'Inicio del año.', explicacion: 'Colombia estrena calendario, metas y energía nueva.' },
+            '2026-01-12': { nombre: 'Día de los Reyes Magos', motivo: 'Celebración cristiana de la Epifanía.', explicacion: 'Recuerda la visita de los Reyes Magos y suele cerrar la temporada navideña.' },
+            '2026-03-23': { nombre: 'Día de San José', motivo: 'Celebración religiosa en honor a San José.', explicacion: 'Una fecha asociada al cuidado, la familia y la figura de San José.' },
+            '2026-04-02': { nombre: 'Jueves Santo', motivo: 'Semana Santa.', explicacion: 'Día de reflexión dentro de la Semana Santa, muy importante en la tradición colombiana.' },
+            '2026-04-03': { nombre: 'Viernes Santo', motivo: 'Semana Santa.', explicacion: 'Conmemora la pasión y muerte de Jesús; en Colombia es un día de recogimiento.' },
+            '2026-05-01': { nombre: 'Día del Trabajo', motivo: 'Reconocimiento a los trabajadores.', explicacion: 'Un día para honrar el esfuerzo, el servicio y la labor de quienes construyen país.' },
+            '2026-05-18': { nombre: 'Ascensión del Señor', motivo: 'Celebración cristiana.', explicacion: 'Recuerda la ascensión de Jesús; en Colombia se traslada al lunes para descanso.' },
+            '2026-06-08': { nombre: 'Corpus Christi', motivo: 'Celebración cristiana.', explicacion: 'Una fiesta religiosa dedicada a la presencia de Cristo en la Eucaristía.' },
+            '2026-06-15': { nombre: 'Sagrado Corazón de Jesús', motivo: 'Celebración cristiana.', explicacion: 'Una fecha asociada al amor, la compasión y la espiritualidad del corazón.' },
+            '2026-06-29': { nombre: 'San Pedro y San Pablo', motivo: 'Celebración religiosa.', explicacion: 'Recuerda a dos figuras clave del cristianismo: Pedro y Pablo.' },
+            '2026-07-20': { nombre: 'Día de la Independencia de Colombia', motivo: 'Fiesta patria.', explicacion: 'Celebra el grito de independencia de 1810 y el espíritu de libertad colombiano.' },
+            '2026-08-07': { nombre: 'Batalla de Boyacá', motivo: 'Fiesta patria.', explicacion: 'Recuerda una victoria decisiva para la independencia de Colombia.' },
+            '2026-08-17': { nombre: 'Asunción de la Virgen', motivo: 'Celebración religiosa.', explicacion: 'Una fecha mariana importante dentro de la tradición católica.' },
+            '2026-10-12': { nombre: 'Día de la Diversidad Étnica y Cultural', motivo: 'Conmemoración histórica y cultural.', explicacion: 'Una fecha para reconocer la diversidad, la memoria y las raíces culturales.' },
+            '2026-11-02': { nombre: 'Día de Todos los Santos', motivo: 'Celebración religiosa.', explicacion: 'Una jornada para recordar a los santos y honrar la memoria espiritual.' },
+            '2026-11-16': { nombre: 'Independencia de Cartagena', motivo: 'Fiesta patria.', explicacion: 'Celebra la independencia de Cartagena, ciudad clave en la historia colombiana.' },
+            '2026-12-08': { nombre: 'Día de la Inmaculada Concepción', motivo: 'Celebración religiosa.', explicacion: 'Una tradición muy querida en Colombia, asociada también al inicio de celebraciones navideñas.' },
+            '2026-12-25': { nombre: 'Navidad', motivo: 'Celebración del nacimiento de Jesús.', explicacion: 'Día de unión familiar, gratitud y celebración espiritual.' }
+        };
         const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         const NOMBRES_DIAS = { 1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado', 0: 'Domingo' };
         const ABBR_DIAS = { 1: 'LUN', 2: 'MAR', 3: 'MIÉ', 4: 'JUE', 5: 'VIE', 6: 'SÁB', 0: 'DOM' };
@@ -1873,6 +1975,46 @@
             container.scrollLeft = scrollLeft;
         }
 
+        function calcularModoEvento(ev) {
+            const isEven = ev.isoWeek % 2 === 0;
+            return ev.esVirtualSiempre || isEven ? 'virtual' : 'presencial';
+        }
+
+        function renderMonthSummary(eventosMes) {
+            const container = document.getElementById('month-summary-kpis');
+            if (!container) return;
+
+            const activos = eventosMes.filter(ev => !ev.isHoliday);
+            const summary = {
+                fechas: eventosMes.length,
+                asignadas: activos.filter(ev => ev.assignedTo).length,
+                virtuales: activos.filter(ev => calcularModoEvento(ev) === 'virtual').length,
+                presenciales: activos.filter(ev => calcularModoEvento(ev) === 'presencial').length
+            };
+
+            const cards = [
+                { id: 'fechas', label: 'Fechas', desc: 'Programadas este mes', icon: 'fa-calendar-days', tone: 'blue', value: summary.fechas },
+                { id: 'asignadas', label: 'Asignadas', desc: 'Con mentor asignado', icon: 'fa-users', tone: 'gold', value: summary.asignadas },
+                { id: 'virtuales', label: 'Virtuales', desc: 'Encuentros en línea', icon: 'fa-video', tone: 'blue', value: summary.virtuales },
+                { id: 'presenciales', label: 'Presenciales', desc: 'Encuentros en sala', icon: 'fa-location-dot', tone: 'gold', value: summary.presenciales }
+            ];
+
+            container.innerHTML = cards.map(card => `
+                <article class="kpi-card" data-kpi="${card.id}">
+                    <div class="relative z-10 flex items-center gap-3">
+                        <div class="kpi-icon ${card.tone === 'gold' ? 'gold' : ''}">
+                            <i class="fas ${card.icon}" aria-hidden="true"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold text-[#102a56]">${card.label}</div>
+                            <div class="kpi-value">${card.value}</div>
+                            <div class="text-[11px] text-slate-500 font-semibold">${card.desc}</div>
+                        </div>
+                    </div>
+                </article>
+            `).join('');
+        }
+
         function renderTodo() {
             document.getElementById('titulo-mes-actual').innerText = MESES[mesSeleccionado];
             document.getElementById('pdf-month').innerText = `${MESES[mesSeleccionado].toUpperCase()} 2026`;
@@ -1923,25 +2065,33 @@
             }
 
             if (eventosMes.length === 0) {
+                renderMonthSummary(eventosMes);
                 gridWeb.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">Sin programación</div>`;
                 pdfTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-slate-400 italic">No hay programación para este mes</td></tr>`;
                 return;
             }
 
-            eventosMes.forEach(ev => {
-                const isEven = ev.isoWeek % 2 === 0;
+            renderMonthSummary(eventosMes);
 
-                let isVirtual = isEven;
-                if (ev.esVirtualSiempre) isVirtual = true; // Aplica config base global
+            eventosMes.forEach(ev => {
+                const isVirtual = calcularModoEvento(ev) === 'virtual';
 
                 const modalLabel = isVirtual ? 'Virtual' : 'Presencial';
                 const modClass = isVirtual ? 'institutional-badge badge-virtual' : 'institutional-badge badge-presencial';
 
                 // --- RENDER WEB ---
                 const card = document.createElement('div');
-                card.className = `calendar-card rounded-xl p-5 transition-all ${ev.isHoliday ? 'border-red-100 bg-red-50/50' : ''}`;
+                card.className = `calendar-card rounded-2xl p-5 transition-all duration-200 ${ev.isHoliday ? 'border-red-100 bg-red-50/50' : ''}`;
 
                 const timeIcon = ev.dayIdx === 6 ? 'fa-clock text-orange-400' : 'fa-clock text-blue-400';
+                const holidayInfo = FESTIVOS_INFO[ev.dateKey];
+                const holidayHtml = ev.isHoliday && holidayInfo ? `
+                    <div class="holiday-note mt-3">
+                        <div class="text-xs font-extrabold uppercase tracking-wide text-red-700">&#127464;&#127476; ${holidayInfo.nombre}</div>
+                        <div class="text-[11px] font-semibold text-red-500 mt-0.5">${holidayInfo.motivo}</div>
+                        <p class="text-xs leading-relaxed mt-2">${holidayInfo.explicacion}</p>
+                    </div>
+                ` : '';
 
                 // Escapamos comillas para evitar que se rompa el HTML del botón editar
                 const safeActividad = ev.actividad.replace(/'/g, "\\'").replace(/"/g, "&quot;");
@@ -1966,7 +2116,7 @@
                             <h4 class="font-bold text-[#102a56] leading-tight text-sm pr-6 ${ev.isHoliday ? 'line-through opacity-50' : ''}">${ev.actividad}</h4>
                             ${(!ev.isHoliday && session) ? `<button onclick="abrirModalEdicion('${ev.dateKey}', '${safeActividad}', '${safeHorario}')" class="text-slate-300 hover:text-indigo-600 transition-colors absolute right-0 top-0 opacity-0 group-hover:opacity-100 bg-white rounded-full p-1" title="Editar Actividad/Horario" aria-label="Editar actividad y horario"><i class="fas fa-edit"></i></button>` : ''}
                         </div>
-                        ${!ev.isHoliday ? `<div class="mt-2 flex items-center text-xs text-slate-500"><i class="far ${timeIcon} mr-1"></i> ${ev.horario}</div>` : ''}
+                        ${!ev.isHoliday ? `<div class="mt-2 flex items-center text-xs text-slate-500"><i class="far ${timeIcon} mr-1"></i> ${ev.horario}</div>` : holidayHtml}
                     </div>
                 `;
                 if (!ev.isHoliday) {
