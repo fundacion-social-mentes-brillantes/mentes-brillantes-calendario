@@ -46,14 +46,37 @@ Los archivos generados siguen el patron `backup_mentes_brillantes_*.json` y esta
 El proyecto es estatico y compatible con Vercel. Despliegue usado:
 
 ```bash
+npm install
+npm test
+npm run build
 npx vercel deploy --prod --yes --logs
 ```
 
 La carpeta `.vercel` es metadata local y esta ignorada en `.gitignore`.
 
+## Validacion local
+
+Antes de desplegar, ejecutar:
+
+```bash
+npm install
+npm test
+npm run build
+```
+
+Scripts disponibles:
+
+- `npm run test:js`: valida sintaxis de JavaScript inline en `index.html`.
+- `npm run test:html`: verifica IDs criticos usados por la app.
+- `npm run test:smoke`: abre la app en un servidor local con Playwright, simula Firebase sin tocar datos reales y revisa carga basica, meses, calendario, Imagen, PDF, WhatsApp y errores reales de consola.
+- `npm test`: ejecuta todas las validaciones.
+- `npm run build`: validacion estatica compatible con Vercel.
+
 ## Checklist antes de desplegar
 
 - La app carga sin errores reales de consola.
+- `npm test` pasa sin errores.
+- `npm run build` pasa sin errores.
 - El calendario muestra meses y tarjetas.
 - Cambiar de mes funciona.
 - Imagen abre el menu y genera archivo/compartir segun dispositivo.
@@ -73,4 +96,3 @@ La carpeta `.vercel` es metadata local y esta ignorada en `.gitignore`.
 - No cambiar `#capture-target`; lo usa la exportacion de imagen.
 - No cambiar `.print-only`/`.pdf-*`; lo usa la exportacion PDF.
 - No guardar secretos ni credenciales privadas en el repositorio.
-

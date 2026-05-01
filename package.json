@@ -1,0 +1,16 @@
+{
+  "name": "mentes-brillantes-calendario",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Calendario estatico de Gimnasio Emocional Mentes Brillantes.",
+  "scripts": {
+    "test": "npm run test:js && npm run test:html && npm run test:smoke",
+    "test:js": "node scripts/validate-inline-js.js",
+    "test:html": "node scripts/validate-html-ids.js",
+    "test:smoke": "node tests/smoke.test.js",
+    "build": "node scripts/build-static.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.52.0"
+  }
+}
