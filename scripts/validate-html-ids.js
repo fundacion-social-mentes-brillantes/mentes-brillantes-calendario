@@ -10,7 +10,6 @@ const criticalIds = [
   'meses-container',
   'capture-target',
   'modal-login',
-  'image-sheet-backdrop',
   'btn-image-desktop',
   'btn-image-mobile',
   'btn-backup-menu',

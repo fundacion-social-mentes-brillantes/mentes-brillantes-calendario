@@ -55,16 +55,27 @@ window.firebase = {
     };
   },
   firestore: function () {
-    const emptySnapshot = { docs: [] };
-    const collectionApi = {
-      get: async function () { return emptySnapshot; },
+    const snapshots = {
+      asignaciones: {
+        docs: [
+          {
+            id: '2026-05-02',
+            data: function () {
+              return { date_key: '2026-05-02', mentor_nombre: 'Mentora Test' };
+            }
+          }
+        ]
+      }
+    };
+    const makeCollectionApi = function (name) { return {
+      get: async function () { return snapshots[name] || { docs: [] }; },
       doc: function (id) {
         return { id: id || 'interactions-doc', data: function () { return {}; } };
       }
-    };
+    }; };
     return {
       enablePersistence: function () { return Promise.resolve(); },
-      collection: function () { return collectionApi; },
+      collection: function (name) { return makeCollectionApi(name); },
       batch: function () {
         return {
           set: function () { throw new Error('Escritura bloqueada en interactions test'); },
@@ -149,23 +160,20 @@ async function main() {
     await page.waitForSelector('#meses-container button', { timeout: 7000 });
     await page.waitForSelector('#grid-web > div', { timeout: 7000 });
 
-    await page.click('#btn-image-desktop');
-    let imageMenu = await page.evaluate(() => ({
-      expanded: document.getElementById('btn-image-desktop').getAttribute('aria-expanded'),
-      hidden: document.getElementById('menu-image-desktop').classList.contains('hidden'),
-      options: [...document.querySelectorAll('#menu-image-desktop [data-image-action]')].map((button) => button.textContent.trim())
+    const imageUi = await page.evaluate(() => ({
+      hasDesktopMenu: !!document.getElementById('menu-image-desktop'),
+      hasMobileSheet: !!document.getElementById('image-sheet-backdrop'),
+      desktopExpanded: document.getElementById('btn-image-desktop').hasAttribute('aria-expanded'),
+      desktopAction: document.getElementById('btn-image-desktop').getAttribute('onclick'),
+      mobileAction: document.getElementById('btn-image-mobile').getAttribute('onclick'),
+      visibleOptions: document.body.textContent.includes('Imagen Disponibilidad') || document.body.textContent.includes('Imagen Asignados')
     }));
-    assert(imageMenu.expanded === 'true', 'El menu Imagen no marco aria-expanded=true.');
-    assert(!imageMenu.hidden, 'El menu Imagen no se abrio.');
-    assert(imageMenu.options.some((text) => text.includes('Disponibilidad')), 'No aparece la opcion Imagen Disponibilidad.');
-    assert(imageMenu.options.some((text) => text.includes('Asignados')), 'No aparece la opcion Imagen Asignados.');
-
-    await page.mouse.click(5, 5);
-    imageMenu = await page.evaluate(() => ({
-      expanded: document.getElementById('btn-image-desktop').getAttribute('aria-expanded'),
-      hidden: document.getElementById('menu-image-desktop').classList.contains('hidden')
-    }));
-    assert(imageMenu.expanded === 'false' && imageMenu.hidden, 'El menu Imagen no se cerro al hacer click afuera.');
+    assert(!imageUi.hasDesktopMenu, 'El menu desktop de Imagen sigue presente.');
+    assert(!imageUi.hasMobileSheet, 'El bottom sheet movil de Imagen sigue presente.');
+    assert(!imageUi.desktopExpanded, 'El boton Imagen conserva aria-expanded aunque ya no despliega menu.');
+    assert(imageUi.desktopAction.includes("descargarImagen('asignados')"), 'El boton Imagen desktop no apunta a asignados.');
+    assert(imageUi.mobileAction.includes("descargarImagen('asignados')"), 'El boton Imagen movil no apunta a asignados.');
+    assert(!imageUi.visibleOptions, 'Siguen visibles opciones de Imagen Disponibilidad/Asignados.');
 
     await page.click('#btn-login-admin');
     let loginHidden = await page.$eval('#modal-login', (el) => el.classList.contains('hidden'));
@@ -185,7 +193,6 @@ async function main() {
     assert(clipboardText.includes('Mentes Brillantes'), 'WhatsApp no incluyo la identidad institucional.');
 
     await page.evaluate(() => {
-      window.refreshAsignacionesFromCloud = async () => {};
       window.URL.createObjectURL = (blob) => {
         const url = `blob:interactions-${window.__objectUrls.length + 1}`;
         window.__objectUrls.push({ url, type: blob && blob.type });
@@ -201,7 +208,8 @@ async function main() {
         }
       });
     });
-    await page.evaluate(() => window.descargarImagen('dispo'));
+    await page.click('#btn-image-desktop');
+    await page.waitForFunction(() => window.__downloadClicks > 0, { timeout: 3000 });
 
     const flyer = await page.evaluate(() => ({
       header: document.querySelector('#capture-target .flyer-title')?.textContent.trim() || '',
@@ -213,11 +221,11 @@ async function main() {
     assert(flyer.header.includes('Mentes Brillantes'), 'El flyer no conserva encabezado institucional.');
     assert(flyer.month.length > 0, 'El flyer no tiene mes.');
     assert(flyer.rows > 0, 'El flyer no genero filas.');
-    assert(flyer.statuses.some((text) => text.includes('Disponible') || text.includes('Cancelado')), 'El flyer no genero badges de estado.');
+    assert(flyer.statuses.some((text) => text.includes('Mentora Test') || text.includes('Sin asignar')), 'El flyer no corresponde al modo asignados.');
     assert(flyer.downloads === 1, 'El flujo de imagen no llego al paso de descarga simulado.');
 
     if (consoleErrors.length > 0) throw new Error(`Errores reales de consola: ${consoleErrors.join(' | ')}`);
-    console.log('OK: interacciones Imagen, Admin, PDF, WhatsApp y flyer validadas sin tocar Firestore.');
+    console.log('OK: interacciones Imagen directa, Admin, PDF, WhatsApp y flyer asignados validadas sin tocar Firestore.');
   } finally {
     await browser.close();
     await new Promise((resolve) => server.close(resolve));

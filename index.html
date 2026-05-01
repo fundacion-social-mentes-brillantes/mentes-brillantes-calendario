@@ -467,17 +467,6 @@
                 font-size: 0.75rem !important;
                 border-radius: 10px !important;
             }
-            /* Menús desplegables para móvil (evitar problemas de hover) */
-            #image-sheet-panel {
-                width: min(100%, 26rem);
-                max-width: none;
-                border-radius: 1.25rem 1.25rem 0 0;
-                max-height: calc(100vh - 4rem);
-                overflow-y: auto;
-            }
-            #image-sheet-panel button[data-image-action] {
-                min-height: 3.5rem;
-            }
             /* Chips de meses más cómodos */
             .month-chip {
                 padding: 0.6rem 1.2rem !important;
@@ -824,29 +813,13 @@
                     </div>
                 </div>
 
-                <!-- Menú Desplegable IMAGEN -->
-                <div class="relative z-30 hidden sm:block" id="image-menu-desktop-wrapper">
-                    <button type="button" id="btn-image-desktop" aria-expanded="false" aria-controls="menu-image-desktop"
-                        class="hidden sm:flex btn-institutional px-4 py-2 rounded-lg text-sm font-semibold items-center gap-2 transition-all cursor-pointer">
-                        <i class="fas fa-image"></i> <span class="hidden sm:inline">Imagen</span> <i
-                            class="fas fa-chevron-down text-xs ml-1 opacity-70"></i>
-                    </button>
-                    <div id="menu-image-desktop"
-                        class="absolute right-0 top-full mt-2 w-56 hidden z-[120] pointer-events-auto animate-fade-in">
-                        <div class="bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
-                            <button onclick="descargarImagen('dispo')" data-image-action="true"
-                                class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 text-slate-700 border-b border-slate-50 flex items-center gap-2 hover:text-indigo-600 transition-colors">
-                                <i class="far fa-calendar text-indigo-500"></i> Imagen Disponibilidad
-                            </button>
-                            <button onclick="descargarImagen('asignado')" data-image-action="true"
-                                class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 text-slate-700 flex items-center gap-2 hover:text-green-600 transition-colors">
-                                <i class="fas fa-user-check text-green-500"></i> Imagen Asignados
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <!-- Botón IMAGEN -->
+                <button type="button" id="btn-image-desktop" onclick="descargarImagen('asignados')" aria-label="Descargar imagen de asignados"
+                    class="hidden sm:flex btn-institutional px-4 py-2 rounded-lg text-sm font-semibold items-center gap-2 transition-all cursor-pointer">
+                    <i class="fas fa-image"></i> <span class="hidden sm:inline">Imagen</span>
+                </button>
 
-                <button type="button" id="btn-image-mobile" aria-controls="image-sheet-backdrop"
+                <button type="button" id="btn-image-mobile" onclick="descargarImagen('asignados')" aria-label="Descargar imagen de asignados"
                     style="touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;"
                     class="flex sm:hidden btn-institutional px-4 py-2 rounded-lg text-sm font-semibold items-center gap-2 transition-all cursor-pointer select-none">
                     <i class="fas fa-image"></i> <span>Imagen</span>
@@ -874,44 +847,6 @@
             </div>
         </div>
     </header>
-
-    <div id="image-sheet-backdrop" role="dialog" aria-modal="true" aria-labelledby="image-sheet-title" class="fixed inset-0 hidden flex items-end justify-center bg-slate-950/55 z-[140] p-4 sm:hidden">
-        <div id="image-sheet-panel" class="w-full max-w-md bg-white shadow-2xl border border-slate-100 rounded-t-3xl rounded-b-2xl overflow-hidden">
-            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-                <div>
-                    <h3 id="image-sheet-title" class="text-base font-bold text-slate-800">Exportar Imagen</h3>
-                    <p class="text-xs text-slate-500 mt-1">Elige el tipo de imagen que quieres generar</p>
-                </div>
-                <button type="button" id="btn-close-image-sheet" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer select-none" style="-webkit-tap-highlight-color: transparent; user-select: none;" aria-label="Cerrar opciones de imagen">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="p-4 space-y-3">
-                <button type="button" id="btn-image-sheet-dispo" data-image-action="true"
-                    style="-webkit-tap-highlight-color: transparent; user-select: none;"
-                    class="w-full text-left px-4 py-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center gap-3 transition-colors cursor-pointer select-none">
-                    <span class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
-                        <i class="far fa-calendar"></i>
-                    </span>
-                    <span>
-                        <span class="block font-semibold">Imagen Disponibilidad</span>
-                        <span class="block text-xs text-slate-500 mt-1">Genera la vista de fechas disponibles</span>
-                    </span>
-                </button>
-                <button type="button" id="btn-image-sheet-asignado" data-image-action="true"
-                    style="-webkit-tap-highlight-color: transparent; user-select: none;"
-                    class="w-full text-left px-4 py-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center gap-3 transition-colors cursor-pointer select-none">
-                    <span class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-user-check"></i>
-                    </span>
-                    <span>
-                        <span class="block font-semibold">Imagen Asignados</span>
-                        <span class="block text-xs text-slate-500 mt-1">Genera la vista con mentores ya asignados</span>
-                    </span>
-                </button>
-            </div>
-        </div>
-    </div>
 
     <!-- UI WEB (CONTENIDO) -->
     <main class="max-w-6xl mx-auto p-4 md:p-8 no-print flex-grow">
@@ -1536,130 +1471,6 @@
             document.querySelectorAll('select[data-prev-value]').forEach(select => {
                 select.disabled = disabled;
             });
-
-            document.querySelectorAll('[data-image-action]').forEach(button => {
-                button.disabled = disabled;
-                button.classList.toggle('opacity-50', disabled);
-                button.classList.toggle('cursor-not-allowed', disabled);
-            });
-        }
-
-        function openImageSheetMobile(e) {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            const sheet = document.getElementById('image-sheet-backdrop');
-            if (!sheet) return;
-            sheet.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
-        }
-
-        function closeImageSheetMobile(e) {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            const sheet = document.getElementById('image-sheet-backdrop');
-            if (!sheet) return;
-            sheet.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-        }
-
-        function handleImageDispoMobile() {
-            closeImageSheetMobile();
-            descargarImagen('dispo');
-        }
-
-        function handleImageAsignadoMobile() {
-            closeImageSheetMobile();
-            descargarImagen('asignado');
-        }
-
-        function bindImageSheetMobile() {
-            const btn = document.getElementById('btn-image-mobile');
-            const backdrop = document.getElementById('image-sheet-backdrop');
-            const panel = document.getElementById('image-sheet-panel');
-            const closeBtn = document.getElementById('btn-close-image-sheet');
-            const dispoBtn = document.getElementById('btn-image-sheet-dispo');
-            const asignadoBtn = document.getElementById('btn-image-sheet-asignado');
-
-            if (btn && btn.dataset.bound !== 'true') {
-                btn.dataset.bound = 'true';
-                btn.addEventListener('click', openImageSheetMobile);
-            }
-
-            if (backdrop && backdrop.dataset.bound !== 'true') {
-                backdrop.dataset.bound = 'true';
-                backdrop.addEventListener('click', closeImageSheetMobile);
-            }
-
-            if (panel && panel.dataset.bound !== 'true') {
-                panel.dataset.bound = 'true';
-                panel.addEventListener('click', (e) => e.stopPropagation());
-                panel.addEventListener('pointerdown', (e) => e.stopPropagation());
-            }
-
-            if (closeBtn && closeBtn.dataset.bound !== 'true') {
-                closeBtn.dataset.bound = 'true';
-                closeBtn.addEventListener('click', closeImageSheetMobile);
-            }
-
-            if (dispoBtn && dispoBtn.dataset.bound !== 'true') {
-                dispoBtn.dataset.bound = 'true';
-                dispoBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    closeImageSheetMobile();
-                    descargarImagen('dispo');
-                });
-            }
-
-            if (asignadoBtn && asignadoBtn.dataset.bound !== 'true') {
-                asignadoBtn.dataset.bound = 'true';
-                asignadoBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    closeImageSheetMobile();
-                    descargarImagen('asignado');
-                });
-            }
-        }
-
-        function setupDesktopImageMenu() {
-            const imageMenuButton = document.getElementById('btn-image-desktop');
-            const imageMenu = document.getElementById('menu-image-desktop');
-            const imageMenuWrapper = document.getElementById('image-menu-desktop-wrapper');
-
-            if (!imageMenuButton || !imageMenu || !imageMenuWrapper) return;
-            if (imageMenuButton.dataset.bound === 'true') return;
-            imageMenuButton.dataset.bound = 'true';
-
-            const closeImageMenuDesktop = () => {
-                imageMenu.classList.add('hidden');
-                imageMenuButton.setAttribute('aria-expanded', 'false');
-            };
-
-            const toggleImageMenuDesktop = (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                const isHidden = imageMenu.classList.contains('hidden');
-                if (isHidden) {
-                    imageMenu.classList.remove('hidden');
-                    imageMenuButton.setAttribute('aria-expanded', 'true');
-                } else {
-                    closeImageMenuDesktop();
-                }
-            };
-
-            imageMenuButton.addEventListener('click', toggleImageMenuDesktop);
-            imageMenu.addEventListener('click', (event) => event.stopPropagation());
-
-            document.addEventListener('click', (event) => {
-                if (!imageMenuWrapper.contains(event.target)) closeImageMenuDesktop();
-            });
-
-            window.addEventListener('resize', closeImageMenuDesktop);
         }
 
         function setupBackupMenu() {
@@ -1712,8 +1523,7 @@
                     ['modal-login', () => document.getElementById('modal-login').classList.add('hidden')],
                     ['modal-mentores', () => toggleModal(false)],
                     ['modal-editar-dia', cerrarModalEdicion],
-                    ['modal-config-base', cerrarModalConfigBase],
-                    ['image-sheet-backdrop', closeImageSheetMobile]
+                    ['modal-config-base', cerrarModalConfigBase]
                 ];
 
                 const active = closers.find(([id]) => {
@@ -1848,8 +1658,6 @@
             renderTodo();
             document.getElementById('pdf-gen-date').innerText = new Date().toLocaleDateString();
             verificarEstadoBotonesAdmin();
-            bindImageSheetMobile();
-            setupDesktopImageMenu();
             setupBackupMenu();
             setupModalEscapeClose();
             void bootstrapCloudData();
