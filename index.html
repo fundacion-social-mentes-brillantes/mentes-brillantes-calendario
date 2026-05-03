@@ -2870,7 +2870,7 @@
             btn.disabled = true;
 
             try {
-                // SEGURIDAD: Evitar duplicados usando una transacción manual simplificada
+                // SEGURIDAD: Evitar duplicados usando ID basado en fecha y transacción atómica
                 const db = firebase.firestore();
                 const FIRESTORE_COLLECTIONS = {
                     solicitudes_publicas: 'solicitudes_publicas',
@@ -2880,23 +2880,33 @@
                 
                 const docRefPublico = db.collection(FIRESTORE_COLLECTIONS.solicitudes_publicas).doc(apartarState.dateKey);
                 const docRefAsignacion = db.collection(FIRESTORE_COLLECTIONS.asignaciones).doc(apartarState.dateKey);
+                // AHORA solicitudes_apartado TAMBIÉN USA dateKey como ID para prevenir duplicados a nivel base de datos
+                const docRefPrivado = db.collection(FIRESTORE_COLLECTIONS.solicitudes_apartado).doc(apartarState.dateKey);
                 
                 const snapPublico = await docRefPublico.get();
                 const snapAsignado = await docRefAsignacion.get();
+                const snapPrivado = await docRefPrivado.get();
 
-                if (snapPublico.exists || snapAsignado.exists) {
+                if (snapPublico.exists || snapAsignado.exists || snapPrivado.exists) {
                     throw new Error('Esta fecha ya no está disponible (alguien la apartó o fue asignada hace poco).');
                 }
 
-                const batch = db.batch();
-                const docRefPrivado = db.collection(FIRESTORE_COLLECTIONS.solicitudes_apartado).doc();
-                toInsert.id = docRefPrivado.id;
+                const serverTS = firebase.firestore.FieldValue.serverTimestamp();
+                toInsert.created_at = serverTS;
+                toInsert.id = apartarState.dateKey;
                 
+                const batch = db.batch();
                 batch.set(docRefPrivado, toInsert);
-                batch.set(docRefPublico, { date_key: apartarState.dateKey, estado: 'pendiente' });
+                batch.set(docRefPublico, { 
+                    date_key: apartarState.dateKey, 
+                    estado: 'pendiente',
+                    created_at: serverTS
+                });
                 
                 await batch.commit();
 
+                // Para UI local usamos la fecha actual aproximada
+                toInsert.created_at = new Date().toISOString();
                 solicitudesPendientes.push(toInsert);
                 verificarEstadoBotonesAdmin();
                 renderTodo();

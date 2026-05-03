@@ -10,6 +10,7 @@ service cloud.firestore {
     }
 
     function validSolicitudCreate() {
+      // Campos permitidos y requeridos para la solicitud privada
       return request.resource.data.keys().hasOnly([
         'id',
         'created_at',
@@ -23,13 +24,15 @@ service cloud.firestore {
         'estado'
       ])
       && request.resource.data.estado == 'pendiente'
+      && request.resource.id == request.resource.data.date_key // ID DEBE ser la fecha para evitar duplicados
       && request.resource.data.date_key is string
       && request.resource.data.fecha_texto is string
       && request.resource.data.actividad is string
       && request.resource.data.horario is string
       && request.resource.data.modalidad is string
       && request.resource.data.solicitante_nombre is string
-      && request.resource.data.mensaje_whatsapp is string;
+      && request.resource.data.mensaje_whatsapp is string
+      && request.resource.data.created_at is timestamp;
     }
 
     match /mentores/{docId} {
@@ -54,13 +57,17 @@ service cloud.firestore {
 
     match /solicitudesApartado/{docId} {
       allow read: if isAdmin();
-      allow create: if validSolicitudCreate();
+      allow create: if validSolicitudCreate() 
+                   && !exists(/databases/$(database)/documents/asignaciones/$(docId));
       allow update, delete: if isAdmin();
     }
 
     match /solicitudesPublicas/{docId} {
       allow read: if true;
-      allow create: if request.resource.data.estado == 'pendiente' && request.resource.data.date_key == docId;
+      allow create: if request.resource.data.keys().hasOnly(['date_key', 'estado', 'created_at'])
+                   && request.resource.data.estado == 'pendiente'
+                   && request.resource.data.date_key == docId
+                   && request.resource.data.created_at is timestamp;
       allow update, delete: if isAdmin();
     }
   }
