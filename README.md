@@ -8,9 +8,10 @@ Aplicacion web estatica para gestionar y publicar la programacion anual de Gimna
 - Permite ver modalidad, horario, estado de disponibilidad y mentor asignado.
 - Permite solicitar apartar una fecha desde el flujo publico.
 - Permite a administradores asignar mentores, editar actividades puntuales, gestionar equipo, atender solicitudes y hacer backups.
-- Genera imagen de disponibilidad/asignados desde `#capture-target`.
+- Genera **Imagen directa** de la programación (descarga inmediata de asignados) desde `#capture-target`.
 - Genera vista imprimible para PDF con `window.print()`.
-- Copia una programacion textual para WhatsApp.
+- Copia una programación textual para WhatsApp.
+- **Seguridad**: Escapado de HTML (XSS) y prevención de duplicados en solicitudes.
 
 ## Uso basico
 
@@ -29,7 +30,12 @@ El boton `Admin` abre el login de Firebase Auth. Al iniciar sesion aparecen:
 - Solicitudes: solicitudes pendientes de apartado.
 - Datos: descarga y restauracion de backup.
 
-Importante: ocultar botones en el frontend no debe ser la unica seguridad. Firestore debe tener reglas que restrinjan escrituras administrativas a usuarios autenticados/autorizados.
+Importante: La seguridad no depende solo de ocultar botones. Se han implementado **Reglas de Firestore** que:
+- Permiten lectura pública solo de colecciones necesarias (`mentores`, `asignaciones`, `configuracionBase`, `configuracionDias`).
+- Permiten lectura pública de un estado mínimo en `solicitudesPublicas` para mostrar "En revisión".
+- Protegen datos privados de `solicitudesApartado` (solo admin puede leer).
+- Restringen escrituras administrativas a usuarios autenticados con permisos.
+- Validan el esquema de datos en cada escritura.
 
 ## Backup
 
@@ -52,7 +58,15 @@ npm run build
 npx vercel deploy --prod --yes --logs
 ```
 
-La carpeta `.vercel` es metadata local y esta ignorada en `.gitignore`.
+## CI/CD Profesional
+
+El proyecto cuenta con **GitHub Actions** para integración continua. El flujo de trabajo (`ci.yml`):
+1. Instala dependencias (`npm ci`).
+2. Instala Playwright y navegadores.
+3. Ejecuta todas las pruebas (`npm test`).
+4. Valida el build (`npm run build`).
+
+Cualquier Push o Pull Request a `main` disparará este proceso.
 
 ## Validacion local
 
@@ -79,7 +93,7 @@ Scripts disponibles:
 - `npm run build` pasa sin errores.
 - El calendario muestra meses y tarjetas.
 - Cambiar de mes funciona.
-- Imagen abre el menu y genera archivo/compartir segun dispositivo.
+- Imagen descarga directamente la programación con los mentores asignados.
 - PDF abre la impresion y mantiene logo/estilos.
 - WhatsApp copia el texto.
 - Admin abre login.

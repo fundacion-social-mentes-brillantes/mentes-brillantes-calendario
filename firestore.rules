@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    function validSolicitudCreate() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'created_at',
+        'date_key',
+        'fecha_texto',
+        'actividad',
+        'horario',
+        'modalidad',
+        'solicitante_nombre',
+        'mensaje_whatsapp',
+        'estado'
+      ])
+      && request.resource.data.estado == 'pendiente'
+      && request.resource.data.date_key is string
+      && request.resource.data.fecha_texto is string
+      && request.resource.data.actividad is string
+      && request.resource.data.horario is string
+      && request.resource.data.modalidad is string
+      && request.resource.data.solicitante_nombre is string
+      && request.resource.data.mensaje_whatsapp is string;
+    }
+
+    match /mentores/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /asignaciones/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /configuracionDias/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /configuracionBase/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /solicitudesApartado/{docId} {
+      allow read: if isAdmin();
+      allow create: if validSolicitudCreate();
+      allow update, delete: if isAdmin();
+    }
+
+    match /solicitudesPublicas/{docId} {
+      allow read: if true;
+      allow create: if request.resource.data.estado == 'pendiente' && request.resource.data.date_key == docId;
+      allow update, delete: if isAdmin();
+    }
+  }
+}

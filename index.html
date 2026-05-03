@@ -1188,7 +1188,8 @@
             asignaciones: 'asignaciones',
             configuracion_dias: 'configuracionDias',
             configuracion_base: 'configuracionBase',
-            solicitudes_apartado: 'solicitudesApartado'
+            solicitudes_apartado: 'solicitudesApartado',
+            solicitudes_publicas: 'solicitudesPublicas'
         };
 
         function getDocKeyField(table) {
@@ -1197,7 +1198,8 @@
                 asignaciones: 'date_key',
                 configuracion_dias: 'date_key',
                 configuracion_base: 'dia',
-                solicitudes_apartado: 'id'
+                solicitudes_apartado: 'id',
+                solicitudes_publicas: 'date_key'
             };
             return keyFields[table];
         }
@@ -1256,11 +1258,8 @@
 
         async function getAllTableRecords(table) {
             if (table === 'solicitudes_publicas') {
-                const snapshot = await firestore.collection(FIRESTORE_COLLECTIONS.solicitudes_apartado).get();
-                return snapshot.docs
-                    .map(doc => ({ id: doc.id, ...doc.data() }))
-                    .filter(record => record.estado === 'pendiente')
-                    .map(record => ({ date_key: record.date_key }));
+                const snapshot = await firestore.collection(FIRESTORE_COLLECTIONS.solicitudes_publicas).get();
+                return snapshot.docs.map(doc => ({ date_key: doc.id, ...doc.data() }));
             }
 
             const collectionName = FIRESTORE_COLLECTIONS[table];
@@ -1509,6 +1508,17 @@
             } catch (error) {
                 console.warn('[cache] No se pudo guardar el snapshot local', error);
             }
+        }
+
+        // SEGURIDAD: Escapar HTML para evitar XSS
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
 
         function hydrateFromLocalSnapshot() {
@@ -2006,9 +2016,9 @@
                             <i class="fas ${card.icon}" aria-hidden="true"></i>
                         </div>
                         <div>
-                            <div class="text-sm font-bold text-[#102a56]">${card.label}</div>
-                            <div class="kpi-value">${card.value}</div>
-                            <div class="text-[11px] text-slate-500 font-semibold">${card.desc}</div>
+                            <div class="text-sm font-bold text-[#102a56]">${escapeHTML(card.label)}</div>
+                            <div class="kpi-value">${escapeHTML(card.value)}</div>
+                            <div class="text-[11px] text-slate-500 font-semibold">${escapeHTML(card.desc)}</div>
                         </div>
                     </div>
                 </article>
@@ -2087,9 +2097,9 @@
                 const holidayInfo = FESTIVOS_INFO[ev.dateKey];
                 const holidayHtml = ev.isHoliday && holidayInfo ? `
                     <div class="holiday-note mt-3">
-                        <div class="text-xs font-extrabold uppercase tracking-wide text-red-700">&#127464;&#127476; ${holidayInfo.nombre}</div>
-                        <div class="text-[11px] font-semibold text-red-500 mt-0.5">${holidayInfo.motivo}</div>
-                        <p class="text-xs leading-relaxed mt-2">${holidayInfo.explicacion}</p>
+                        <div class="text-xs font-extrabold uppercase tracking-wide text-red-700">&#127464;&#127476; ${escapeHTML(holidayInfo.nombre)}</div>
+                        <div class="text-[11px] font-semibold text-red-500 mt-0.5">${escapeHTML(holidayInfo.motivo)}</div>
+                        <p class="text-xs leading-relaxed mt-2">${escapeHTML(holidayInfo.explicacion)}</p>
                     </div>
                 ` : '';
 
@@ -2100,32 +2110,32 @@
                 let webContent = `
                     <div class="flex justify-between items-start mb-3">
                         <div class="calendar-datebox text-center rounded-lg p-2 min-w-[3.5rem]">
-                            <div class="text-xs font-bold text-[#f4e8bf] uppercase">${ev.dayName.substring(0, 3)}</div>
+                            <div class="text-xs font-bold text-[#f4e8bf] uppercase">${escapeHTML(ev.dayName.substring(0, 3))}</div>
                             <div class="text-xl font-bold">${ev.dayNum}</div>
                         </div>
                         <div class="text-right">
                              ${ev.isHoliday
                         ? `<span class="institutional-badge bg-red-50 text-red-600 text-xs font-bold border-red-100"><i class="far fa-calendar-times"></i> FESTIVO</span>`
-                        : `<span class="text-xs ${modClass}"><i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'}"></i> ${modalLabel}</span>`
+                        : `<span class="text-xs ${modClass}"><i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'}"></i> ${escapeHTML(modalLabel)}</span>`
                     }
                              <div class="text-[10px] text-slate-400 mt-1">Sem ${ev.isoWeek}</div>
                         </div>
                     </div>
                     <div class="mb-3 relative group">
                         <div class="flex justify-between items-start">
-                            <h4 class="font-bold text-[#102a56] leading-tight text-sm pr-6 ${ev.isHoliday ? 'line-through opacity-50' : ''}">${ev.actividad}</h4>
+                            <h4 class="font-bold text-[#102a56] leading-tight text-sm pr-6 ${ev.isHoliday ? 'line-through opacity-50' : ''}">${escapeHTML(ev.actividad)}</h4>
                             ${(!ev.isHoliday && session) ? `<button onclick="abrirModalEdicion('${ev.dateKey}', '${safeActividad}', '${safeHorario}')" class="text-slate-300 hover:text-indigo-600 transition-colors absolute right-0 top-0 opacity-0 group-hover:opacity-100 bg-white rounded-full p-1" title="Editar Actividad/Horario" aria-label="Editar actividad y horario"><i class="fas fa-edit"></i></button>` : ''}
                         </div>
-                        ${!ev.isHoliday ? `<div class="mt-2 flex items-center text-xs text-slate-500"><i class="far ${timeIcon} mr-1"></i> ${ev.horario}</div>` : holidayHtml}
+                        ${!ev.isHoliday ? `<div class="mt-2 flex items-center text-xs text-slate-500"><i class="far ${timeIcon} mr-1"></i> ${escapeHTML(ev.horario)}</div>` : holidayHtml}
                     </div>
                 `;
                 if (!ev.isHoliday) {
                     if (session) {
                         let selectHtml = `
                             <div class="relative pt-2 border-t border-slate-50">
-                                <select onchange="confirmarCambioAsignacion(this, '${ev.dateKey}')" data-prev-value="${ev.assignedTo}" title="Debes confirmar el cambio" class="mentor-select w-full text-sm rounded-lg p-2.5 outline-none cursor-pointer appearance-none">
+                                <select onchange="confirmarCambioAsignacion(this, '${ev.dateKey}')" data-prev-value="${escapeHTML(ev.assignedTo)}" title="Debes confirmar el cambio" class="mentor-select w-full text-sm rounded-lg p-2.5 outline-none cursor-pointer appearance-none">
                                     <option value="">Seleccionar Mentor...</option>
-                                    ${mentores.map(m => `<option value="${m}" ${m === ev.assignedTo ? 'selected' : ''}>${m}</option>`).join('')}
+                                    ${mentores.map(m => `<option value="${escapeHTML(m)}" ${m === ev.assignedTo ? 'selected' : ''}>${escapeHTML(m)}</option>`).join('')}
                                 </select>
                                 <div class="absolute right-3 top-5 pointer-events-none text-slate-400"><i class="fas fa-chevron-down text-xs"></i></div>
                                 <div id="save-status-${ev.dateKey}" class="mt-2 text-[11px] text-slate-400">Debes confirmar el cambio</div>
@@ -2139,7 +2149,7 @@
                         // MODO PUBLICO O APARTADO
                         let labelHtml = '';
                         if (ev.assignedTo) {
-                            labelHtml = `<div class="mt-2 pt-2 border-t border-slate-50 text-sm font-semibold text-slate-800 flex items-center"><i class="fas fa-user-check text-green-500 mr-2"></i> <span class="truncate">${ev.assignedTo}</span></div>`;
+                            labelHtml = `<div class="mt-2 pt-2 border-t border-slate-50 text-sm font-semibold text-slate-800 flex items-center"><i class="fas fa-user-check text-green-500 mr-2"></i> <span class="truncate">${escapeHTML(ev.assignedTo)}</span></div>`;
                         } else {
                             const pendingSol = solicitudesPendientes.find(s => s.date_key === ev.dateKey);
                             if (pendingSol) {
@@ -2166,20 +2176,20 @@
                     pdfBadge = '<span class="pdf-badge pdf-badge-festivo"><i class="far fa-calendar-times"></i> FESTIVO</span>';
                     pdfStatus = '<span class="text-red-400 italic text-xs">Cancelado</span>';
                 } else {
-                    pdfBadge = `<span class="pdf-badge ${isVirtual ? 'pdf-badge-virtual' : 'pdf-badge-presencial'}"><i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'}"></i> ${modalLabel}</span>`;
+                    pdfBadge = `<span class="pdf-badge ${isVirtual ? 'pdf-badge-virtual' : 'pdf-badge-presencial'}"><i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'}"></i> ${escapeHTML(modalLabel)}</span>`;
                     pdfStatus = ev.assignedTo
-                        ? `<span class="font-bold text-slate-800 text-sm">${ev.assignedTo}</span>`
+                        ? `<span class="font-bold text-slate-800 text-sm">${escapeHTML(ev.assignedTo)}</span>`
                         : `<span class="text-slate-400 italic text-xs border border-dashed border-slate-300 px-2 py-1 rounded">Disponible</span>`;
                 }
 
                 tr.innerHTML = `
                     <td>
                         <div class="font-bold text-lg text-slate-700">${ev.dayNum}</div>
-                        <div class="text-xs font-bold text-slate-400 uppercase">${ev.dayName}</div>
+                        <div class="text-xs font-bold text-slate-400 uppercase">${escapeHTML(ev.dayName)}</div>
                     </td>
                     <td>
-                        <div class="font-bold text-slate-800 text-sm ${ev.isHoliday ? 'line-through opacity-50' : ''}">${ev.actividad}</div>
-                        ${!ev.isHoliday ? `<div class="text-xs text-slate-500 mt-1"><i class="far fa-clock text-[9px] mr-1"></i>${ev.horario}</div>` : ''}
+                        <div class="font-bold text-slate-800 text-sm ${ev.isHoliday ? 'line-through opacity-50' : ''}">${escapeHTML(ev.actividad)}</div>
+                        ${!ev.isHoliday ? `<div class="text-xs text-slate-500 mt-1"><i class="far fa-clock text-[9px] mr-1"></i>${escapeHTML(ev.horario)}</div>` : ''}
                     </td>
                     <td>${pdfBadge}<div class="text-[9px] text-slate-400 mt-1">Sem ${ev.isoWeek}</div></td>
                     <td style="text-align: right;">${pdfStatus}</td>
@@ -2498,8 +2508,8 @@
             const list = document.getElementById('lista-mentores-ui');
             list.innerHTML = mentores.map(m => `
                 <div class="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100 mb-2">
-                    <span class="font-medium text-slate-700">${m}</span>
-                    <button onclick="borrarMentor('${m}')" aria-label="Eliminar mentor ${m}" class="text-slate-400 hover:text-red-500"><i class="fas fa-trash"></i></button>
+                    <span class="font-medium text-slate-700">${escapeHTML(m)}</span>
+                    <button onclick="borrarMentor('${escapeHTML(m)}')" aria-label="Eliminar mentor ${escapeHTML(m)}" class="text-slate-400 hover:text-red-500"><i class="fas fa-trash"></i></button>
                 </div>
             `).join('') || '<p class="text-center text-slate-400 text-sm italic">Sin mentores</p>';
         }
@@ -2601,10 +2611,10 @@
                                     <div class="text-[10px] font-bold text-white/80 uppercase tracking-wider mt-1">${dayAbbr}</div>
                                 </div>
                                 <div class="flyer-content">
-                                    <div class="flyer-activity ${isHoliday ? 'line-through opacity-50' : ''}">${actividad}</div>
+                                    <div class="flyer-activity ${isHoliday ? 'line-through opacity-50' : ''}">${escapeHTML(actividad)}</div>
                                     <div class="flyer-meta">
-                                        ${!isHoliday ? `<span class="flyer-pill"><i class="far fa-clock"></i>${horario}</span>` : `<span class="flyer-pill"><i class="far fa-calendar-times"></i>Fecha no programable</span>`}
-                                        <span class="flyer-pill ${isVirtual ? 'virtual' : 'presencial'}">${!isHoliday ? `<i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'}"></i>${modalLabel}` : 'Festivo'}</span>
+                                        ${!isHoliday ? `<span class="flyer-pill"><i class="far fa-clock"></i>${escapeHTML(horario)}</span>` : `<span class="flyer-pill"><i class="far fa-calendar-times"></i>Fecha no programable</span>`}
+                                        <span class="flyer-pill ${isVirtual ? 'virtual' : 'presencial'}">${!isHoliday ? `<i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'}"></i>${escapeHTML(modalLabel)}` : 'Festivo'}</span>
                                     </div>
                                 </div>
                                 <div>${statusBadge}</div>
@@ -2688,19 +2698,19 @@
                         let statusBadge = '';
                         if (isHoliday) statusBadge = `<span class="flyer-status status-badge-cancelled"><i class="far fa-calendar-times"></i> Cancelado</span>`;
                         else if (modo === 'dispo') statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned"><i class="fas fa-lock"></i> Ocupado</span>` : `<span class="flyer-status status-badge-ok"><i class="fas fa-check"></i> Disponible</span>`;
-                        else statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned"><i class="fas fa-user-check"></i> ${assignedTo}</span>` : `<span class="flyer-status status-badge-empty"><i class="far fa-circle"></i> Sin asignar</span>`;
+                        else statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned"><i class="fas fa-user-check"></i> ${escapeHTML(assignedTo)}</span>` : `<span class="flyer-status status-badge-empty"><i class="far fa-circle"></i> Sin asignar</span>`;
 
                         flyerList.innerHTML += `
                             <div class="flyer-row ${rowClass}">
                                 <div class="flyer-date">
                                     <div class="text-3xl font-bold leading-none">${current.getDate()}</div>
-                                    <div class="text-[10px] font-bold text-white/80 uppercase tracking-wider mt-1">${dayAbbr}</div>
+                                    <div class="text-[10px] font-bold text-white/80 uppercase tracking-wider mt-1">${escapeHTML(dayAbbr)}</div>
                                 </div>
                                 <div class="flyer-content">
-                                    <div class="flyer-activity ${isHoliday ? 'line-through opacity-50' : ''}">${actividad}</div>
+                                    <div class="flyer-activity ${isHoliday ? 'line-through opacity-50' : ''}">${escapeHTML(actividad)}</div>
                                     <div class="flyer-meta">
-                                        ${!isHoliday ? `<span class="flyer-pill"><i class="far fa-clock"></i>${horario}</span>` : `<span class="flyer-pill"><i class="far fa-calendar-times"></i>Fecha no programable</span>`}
-                                        <span class="flyer-pill ${isVirtual ? 'virtual' : 'presencial'}">${!isHoliday ? `<i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'}"></i>${modalLabel}` : 'Festivo'}</span>
+                                        ${!isHoliday ? `<span class="flyer-pill"><i class="far fa-clock"></i>${escapeHTML(horario)}</span>` : `<span class="flyer-pill"><i class="far fa-calendar-times"></i>Fecha no programable</span>`}
+                                        <span class="flyer-pill ${isVirtual ? 'virtual' : 'presencial'}">${!isHoliday ? `<i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'}"></i>${escapeHTML(modalLabel)}` : 'Festivo'}</span>
                                     </div>
                                 </div>
                                 <div>${statusBadge}</div>
@@ -2822,12 +2832,12 @@
         // --- FLUJO APARTAR FECHAS PUBLICO ---
         function abrirModalApartar(dateKey, fechaTexto, actividad, horario, modalidad) {
             apartarState = { dateKey, fechaTexto, actividad, horario, modalidad };
-            const infoText = `Estás a punto de solicitar <b>${actividad}</b> el <b>${fechaTexto}</b> en el horario de <b>${horario}</b> (${modalidad}).`;
+            const infoText = `Estás a punto de solicitar <b>${escapeHTML(actividad)}</b> el <b>${escapeHTML(fechaTexto)}</b> en el horario de <b>${escapeHTML(horario)}</b> (${escapeHTML(modalidad)}).`;
             document.getElementById('apartar-info').innerHTML = infoText;
             
             const selectDiv = document.getElementById('apartar-nombre');
             selectDiv.innerHTML = '<option value="">Selecciona tu nombre...</option>';
-            mentores.forEach(m => { selectDiv.innerHTML += `<option value="${m}">${m}</option>`; });
+            mentores.forEach(m => { selectDiv.innerHTML += `<option value="${escapeHTML(m)}">${escapeHTML(m)}</option>`; });
             
             document.getElementById('modal-apartar').classList.remove('hidden');
         }
@@ -2860,23 +2870,42 @@
             btn.disabled = true;
 
             try {
-                const { error } = await supabaseClient.from('solicitudes_apartado').insert(toInsert);
-                if (error) { 
-                    if(error.code === '23505' || error.message.includes('unique')) { throw new Error('Ya existe una solicitud pendiente para esta fecha.'); }
-                    throw error; 
+                // SEGURIDAD: Evitar duplicados usando una transacción manual simplificada
+                const db = firebase.firestore();
+                const FIRESTORE_COLLECTIONS = {
+                    solicitudes_publicas: 'solicitudes_publicas',
+                    asignaciones: 'asignaciones',
+                    solicitudes_apartado: 'solicitudes_apartado'
+                };
+                
+                const docRefPublico = db.collection(FIRESTORE_COLLECTIONS.solicitudes_publicas).doc(apartarState.dateKey);
+                const docRefAsignacion = db.collection(FIRESTORE_COLLECTIONS.asignaciones).doc(apartarState.dateKey);
+                
+                const snapPublico = await docRefPublico.get();
+                const snapAsignado = await docRefAsignacion.get();
+
+                if (snapPublico.exists || snapAsignado.exists) {
+                    throw new Error('Esta fecha ya no está disponible (alguien la apartó o fue asignada hace poco).');
                 }
+
+                const batch = db.batch();
+                const docRefPrivado = db.collection(FIRESTORE_COLLECTIONS.solicitudes_apartado).doc();
+                toInsert.id = docRefPrivado.id;
+                
+                batch.set(docRefPrivado, toInsert);
+                batch.set(docRefPublico, { date_key: apartarState.dateKey, estado: 'pendiente' });
+                
+                await batch.commit();
 
                 solicitudesPendientes.push(toInsert);
                 verificarEstadoBotonesAdmin();
                 renderTodo();
 
-                // Lógica de éxito nueva
                 cerrarModalApartar();
                 
                 const txtMsg = document.getElementById('exito-mensaje-texto');
                 txtMsg.innerText = wppMsg;
                 
-                // Mostrar botón compartir si está disponible
                 if (navigator.share) {
                     document.getElementById('btn-share-exito').classList.remove('hidden');
                 }
@@ -2940,17 +2969,17 @@
                     <div class="border border-slate-200 rounded-xl p-4 mb-4 hover:border-amber-300 transition-colors shadow-sm">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
                             <div>
-                                <h4 class="font-bold text-slate-800 text-lg flex items-center"><i class="fas fa-user-circle text-amber-500 mr-2"></i> ${s.solicitante_nombre}</h4>
-                                <p class="text-sm text-slate-500 flex items-center mt-1"><i class="far fa-calendar-alt w-4 h-4 mr-1"></i> ${s.fecha_texto}</p>
-                                <p class="text-sm text-slate-500 flex items-center"><i class="fas fa-tag w-4 h-4 mr-1"></i> ${s.actividad} (${s.modalidad})</p>
+                                <h4 class="font-bold text-slate-800 text-lg flex items-center"><i class="fas fa-user-circle text-amber-500 mr-2"></i> ${escapeHTML(s.solicitante_nombre)}</h4>
+                                <p class="text-sm text-slate-500 flex items-center mt-1"><i class="far fa-calendar-alt w-4 h-4 mr-1"></i> ${escapeHTML(s.fecha_texto)}</p>
+                                <p class="text-sm text-slate-500 flex items-center"><i class="fas fa-tag w-4 h-4 mr-1"></i> ${escapeHTML(s.actividad)} (${escapeHTML(s.modalidad)})</p>
                                 <p class="text-xs text-slate-400 mt-2"><i class="far fa-clock"></i> Solicitado el: ${formattedDate}</p>
-                                <div class="bg-slate-50 p-2 text-xs rounded border mt-2 font-mono text-slate-600 break-all cursor-pointer hover:bg-slate-100" onclick="navigator.clipboard.writeText('${s.mensaje_whatsapp}'); showToast('Copiado');" title="Click para copiar mensaje">
-                                    "${s.mensaje_whatsapp}" <i class="far fa-copy float-right mt-0.5"></i>
+                                <div class="bg-slate-50 p-2 text-xs rounded border mt-2 font-mono text-slate-600 break-all cursor-pointer hover:bg-slate-100" onclick="navigator.clipboard.writeText('${escapeHTML(s.mensaje_whatsapp)}'); showToast('Copiado');" title="Click para copiar mensaje">
+                                    "${escapeHTML(s.mensaje_whatsapp)}" <i class="far fa-copy float-right mt-0.5"></i>
                                 </div>
                             </div>
                             <div class="mt-4 md:mt-0 flex gap-2">
-                                <button onclick="adminAtenderSolicitud('${s.id}')" class="bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-2 rounded font-bold text-sm transition-colors" title="Marcar como atendida o resuelta"><i class="fas fa-check"></i> Atendida</button>
-                                <button onclick="adminRechazarSolicitud('${s.id}')" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-2 rounded font-bold text-sm transition-colors" title="Rechazar y borrar"><i class="fas fa-times"></i> Rechazar</button>
+                                <button onclick="adminAtenderSolicitud('${escapeHTML(s.id)}')" class="bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-2 rounded font-bold text-sm transition-colors" title="Marcar como atendida o resuelta"><i class="fas fa-check"></i> Atendida</button>
+                                <button onclick="adminRechazarSolicitud('${escapeHTML(s.id)}')" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-2 rounded font-bold text-sm transition-colors" title="Rechazar y borrar"><i class="fas fa-times"></i> Rechazar</button>
                             </div>
                         </div>
                     </div>`;
@@ -2966,20 +2995,22 @@
 
         async function adminAtenderSolicitud(id) {
             const solicitud = solicitudesPendientes.find(s => s.id == id);
-            if (!solicitud) {
-                alert('No se encontró la solicitud pendiente.');
-                return;
-            }
+            if (!solicitud) return;
 
             try {
-                const { error: asignacionError } = await supabaseClient.from('asignaciones').upsert({
-                    date_key: solicitud.date_key,
-                    mentor_nombre: solicitud.solicitante_nombre
-                });
-                if (asignacionError) throw asignacionError;
-
-                const { error: solicitudError } = await supabaseClient.from('solicitudes_apartado').update({ estado: 'atendida' }).eq('id', id);
-                if (solicitudError) throw solicitudError;
+                const db = firebase.firestore();
+                const batch = db.batch();
+                
+                // 1. Crear asignación
+                batch.set(db.collection('asignaciones').doc(solicitud.date_key), { date_key: solicitud.date_key, mentor_nombre: solicitud.solicitante_nombre });
+                
+                // 2. Actualizar estado privado
+                batch.update(db.collection('solicitudes_apartado').doc(id), { estado: 'atendida' });
+                
+                // 3. Borrar rastro público
+                batch.delete(db.collection('solicitudes_publicas').doc(solicitud.date_key));
+                
+                await batch.commit();
 
                 await refreshDataFromCloud();
                 await fetchSolicitudes();
@@ -2994,8 +3025,25 @@
 
         async function adminRechazarSolicitud(id) {
             if(confirm('¿Rechazar esta solicitud? El día volverá a estar libre.')) {
-                await supabaseClient.from('solicitudes_apartado').update({ estado: 'rechazada' }).eq('id', id);
-                await abrirModalSolicitudes();
+                try {
+                    const solicitud = solicitudesPendientes.find(s => s.id == id);
+                    if (!solicitud) return;
+
+                    const db = firebase.firestore();
+                    const batch = db.batch();
+                    
+                    // 1. Marcar como rechazada
+                    batch.update(db.collection('solicitudes_apartado').doc(id), { estado: 'rechazada' });
+                    
+                    // 2. Borrar rastro público para que otro pueda pedirla
+                    batch.delete(db.collection('solicitudes_publicas').doc(solicitud.date_key));
+                    
+                    await batch.commit();
+                    await abrirModalSolicitudes();
+                } catch(err) {
+                    console.error(err);
+                    alert("Error al rechazar solicitud.");
+                }
             }
         }
     </script>
