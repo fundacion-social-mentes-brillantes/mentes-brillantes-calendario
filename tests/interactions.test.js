@@ -50,42 +50,49 @@ window.firebase = {
         setTimeout(function () { callback(null); }, 0);
         return function () {};
       },
-      signInWithEmailAndPassword: async function () { throw new Error('Auth deshabilitado en interactions test'); },
+      signInWithEmailAndPassword: async function () { throw new Error('Auth deshabilitado'); },
       signOut: async function () {}
     };
   },
   firestore: function () {
     const snapshots = {
-      asignaciones: {
-        docs: [
-          {
-            id: '2026-05-02',
-            data: function () {
-              return { date_key: '2026-05-02', mentor_nombre: 'Mentora Test' };
-            }
-          }
-        ]
-      }
+      asignaciones: { 
+        docs: [{ id: '2026-05-02', data: () => ({ date_key: '2026-05-02', mentor_nombre: 'Mentora Test' }) }] 
+      },
+      mentores: { docs: [{ id: 'm1', data: () => ({ nombre: 'Mentor Test' }) }] }
     };
-    const makeCollectionApi = function (name) { return {
-      get: async function () { return snapshots[name] || { docs: [] }; },
-      doc: function (id) {
-        return { id: id || 'interactions-doc', data: function () { return {}; } };
+    window.__firestoreCalls = [];
+    const makeDocApi = (collName, id) => ({
+      id: id || 'doc-id',
+      get: async () => ({
+        exists: false,
+        data: () => ({})
+      }),
+      set: async (data) => {
+        window.__firestoreCalls.push({ type: 'set', collection: collName, id, data });
       }
-    }; };
+    });
+    const makeCollectionApi = (name) => ({
+      get: async () => snapshots[name] || { docs: [] },
+      doc: (id) => makeDocApi(name, id)
+    });
     return {
-      enablePersistence: function () { return Promise.resolve(); },
-      collection: function (name) { return makeCollectionApi(name); },
-      batch: function () {
-        return {
-          set: function () { throw new Error('Escritura bloqueada en interactions test'); },
-          delete: function () { throw new Error('Borrado bloqueado en interactions test'); },
-          commit: async function () { throw new Error('Commit bloqueado en interactions test'); }
-        };
+      enablePersistence: async () => {},
+      collection: (name) => {
+        window.__firestoreCalls.push({ type: 'collection', name });
+        return makeCollectionApi(name);
+      },
+      runTransaction: async (callback) => {
+        window.__firestoreCalls.push({ type: 'transaction' });
+        return callback({
+          get: async (docRef) => docRef.get(),
+          set: (docRef, data) => docRef.set(data)
+        });
       }
     };
   }
 };
+window.firebase.firestore.FieldValue = { serverTimestamp: () => 'SERVER_TIMESTAMP' };
 `;
 
 function assert(condition, message) {
@@ -239,8 +246,48 @@ async function main() {
     assert(flyer.statuses.some((text) => text.includes('Mentora Test') || text.includes('Sin asignar')), 'El flyer no corresponde al modo asignados.');
     assert(flyer.downloads === 1, 'El flujo de imagen no llego al paso de descarga simulado.');
 
+    // TEST: FLUJO APARTAR (Detectar nombres de colecciones incorrectos)
+    await page.evaluate(() => {
+        const grid = document.getElementById('grid-web');
+        // Buscar el botón que diga "Apartar"
+        const availableBtn = [...grid.querySelectorAll('button')].find(b => b.textContent === 'Apartar');
+        if (availableBtn) {
+            availableBtn.click();
+            window.__clickedApartar = true;
+        } else {
+            window.__clickedApartar = false;
+        }
+    });
+    
+    const clicked = await page.evaluate(() => window.__clickedApartar);
+    assert(clicked, 'No se encontro boton de "Apartar" en los dias disponibles.');
+
+    const modalVisible = await page.isVisible('#modal-apartar');
+    assert(modalVisible, 'El modal de apartar no se mostro despues de click.');
+    
+    // Esperar a que el select tenga mas de la opcion por defecto
+    await page.waitForFunction(() => document.querySelectorAll('#apartar-nombre option').length > 1, { timeout: 5000 });
+    
+    await page.selectOption('#apartar-nombre', { index: 1 });
+    await page.click('button[onclick="confirmarApartado(this)"]');
+    
+    // Esperar a que la transacción termine en el mock
+    await page.waitForFunction(() => window.__firestoreCalls.some(c => c.type === 'transaction'), { timeout: 5000 });
+    
+    const firestoreCalls = await page.evaluate(() => window.__firestoreCalls);
+    const collectionsTargeted = firestoreCalls.filter(c => c.type === 'collection').map(c => c.name);
+    
+    // Verificamos que NO use snake_case
+    assert(!collectionsTargeted.includes('solicitudes_publicas'), 'ERROR: Se detecto uso de solicitudes_publicas (snake_case) incorrecto.');
+    assert(!collectionsTargeted.includes('solicitudes_apartado'), 'ERROR: Se detecto uso de solicitudes_apartado (snake_case) incorrecto.');
+    
+    // Verificamos que USE camelCase
+    assert(collectionsTargeted.includes('solicitudesPublicas'), 'Falta llamar a solicitudesPublicas.');
+    assert(collectionsTargeted.includes('solicitudesApartado'), 'Falta llamar a solicitudesApartado.');
+    assert(collectionsTargeted.includes('asignaciones'), 'Falta validar disponibilidad en asignaciones.');
+
     if (consoleErrors.length > 0) throw new Error(`Errores reales de consola: ${consoleErrors.join(' | ')}`);
-    console.log('OK: interacciones Imagen directa, Admin, PDF, WhatsApp y flyer asignados validadas sin tocar Firestore.');
+    console.log('OK: interacciones, transacciones y nombres de colecciones Firestore validados.');
   } finally {
     await browser.close();
     await new Promise((resolve) => server.close(resolve));

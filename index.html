@@ -2871,12 +2871,7 @@
 
             try {
                 const db = firebase.firestore();
-                const FIRESTORE_COLLECTIONS = {
-                    solicitudes_publicas: 'solicitudes_publicas',
-                    asignaciones: 'asignaciones',
-                    solicitudes_apartado: 'solicitudes_apartado'
-                };
-
+                
                 await db.runTransaction(async (transaction) => {
                     const docRefPublico = db.collection(FIRESTORE_COLLECTIONS.solicitudes_publicas).doc(apartarState.dateKey);
                     const docRefAsignacion = db.collection(FIRESTORE_COLLECTIONS.asignaciones).doc(apartarState.dateKey);
