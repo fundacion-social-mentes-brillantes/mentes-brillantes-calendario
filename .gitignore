@@ -3,3 +3,10 @@ temp_repo/
 node_modules/
 
 .vercel
+serviceAccountKey.json
+scripts/serviceAccountKey.json
+*.serviceAccount.json
+*.local
+.firebase/
+firestore-debug.log
+ui-debug.log

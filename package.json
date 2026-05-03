@@ -4,16 +4,17 @@
   "private": true,
   "description": "Calendario estatico de Gimnasio Emocional Mentes Brillantes.",
   "scripts": {
-    "test": "npm run test:js && npm run test:html && npm run test:smoke && npm run test:interactions",
+    "test": "npm run test:js && npm run test:html && npm run test:smoke && npm run test:interactions && npm run test:rules",
     "test:js": "node scripts/validate-inline-js.js",
     "test:html": "node scripts/validate-html-ids.js",
     "test:smoke": "node tests/smoke.test.js",
     "test:interactions": "node tests/interactions.test.js",
-    "test:rules": "jest tests/rules.test.js",
+    "test:rules": "firebase emulators:exec --only firestore \"jest tests/rules.test.js\"",
     "build": "node scripts/build-static.js"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.0",
+    "firebase-tools": "^15.16.0",
     "jest": "^30.3.0",
     "playwright": "^1.52.0"
   }
