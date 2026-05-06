@@ -10,7 +10,7 @@
     "test:smoke": "node tests/smoke.test.js",
     "test:interactions": "node tests/interactions.test.js",
     "test:rules": "firebase emulators:exec --only firestore \"jest tests/rules.test.js\"",
-    "build": "node scripts/build-static.js"
+    "build": "node scripts/mobile-flyer-patch.js && node scripts/build-static.js"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.0",
