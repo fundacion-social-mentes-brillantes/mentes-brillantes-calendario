@@ -974,66 +974,212 @@
         #capture-target {
             width: 1080px;
             background:
-                radial-gradient(circle at 8% 0%, rgba(214, 181, 94, 0.22), transparent 18rem),
-                linear-gradient(180deg, #061225 0%, #0b1b35 100%) !important;
-            border-radius: 32px;
-            box-shadow: 0 34px 90px rgba(0, 0, 0, 0.42);
+                radial-gradient(circle at 8% 0%, rgba(214, 181, 94, 0.2), transparent 20rem),
+                radial-gradient(circle at 92% 10%, rgba(96, 165, 250, 0.16), transparent 22rem),
+                linear-gradient(180deg, #061225 0%, #071a33 48%, #061225 100%) !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
         }
 
         .flyer-header {
             background:
-                radial-gradient(circle at 88% 18%, rgba(214, 181, 94, 0.22), transparent 18rem),
-                linear-gradient(135deg, #061225 0%, #102a56 100%) !important;
-            padding: 44px 54px 38px !important;
-            border-bottom: 1px solid rgba(214, 181, 94, 0.58) !important;
+                radial-gradient(circle at 12% 12%, rgba(232, 199, 106, 0.24), transparent 18rem),
+                linear-gradient(135deg, #061225 0%, #0b1b35 48%, #102a56 100%) !important;
+            padding: 54px 58px 42px !important;
+            border-bottom: 0 !important;
+            position: relative;
+        }
+
+        .flyer-header::after {
+            inset: auto 58px 0 58px !important;
+            height: 2px !important;
+            background: linear-gradient(90deg, transparent, #d6b55e, #f4e8bf, #d6b55e, transparent) !important;
+        }
+
+        .flyer-header-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            gap: 32px;
+        }
+
+        .flyer-brand-block {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            min-width: 0;
         }
 
         .flyer-logo-card {
-            width: 142px !important;
-            height: 112px !important;
-            border-radius: 999px !important;
-            background: #fff8e8 !important;
-            border-color: rgba(232, 199, 106, 0.9) !important;
-            box-shadow: 0 0 0 8px rgba(214, 181, 94, 0.09), 0 22px 44px rgba(0, 0, 0, 0.32) !important;
+            width: 194px !important;
+            height: 134px !important;
+            flex: 0 0 auto;
+            border-radius: 24px !important;
+            background:
+                linear-gradient(180deg, rgba(255, 248, 232, 0.96) 0%, rgba(244, 232, 191, 0.9) 100%) !important;
+            border: 1px solid rgba(232, 199, 106, 0.92) !important;
+            padding: 12px !important;
+            box-shadow: 0 0 0 8px rgba(214, 181, 94, 0.08), 0 24px 52px rgba(0, 0, 0, 0.36) !important;
+            overflow: hidden;
+        }
+
+        .flyer-logo-card .brand-logo-img,
+        .flyer-logo-card .flyer-logo-img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain !important;
+            display: block !important;
+            transform: none !important;
+        }
+
+        .flyer-kicker {
+            color: #e8c76a !important;
+            font-size: 16px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.18em !important;
         }
 
         .flyer-title {
             color: #fff8e8 !important;
-            font-size: 46px !important;
-        }
-
-        .flyer-kicker,
-        .flyer-month-label {
-            color: #e8c76a !important;
+            font-size: 58px !important;
+            line-height: 0.96 !important;
+            letter-spacing: 0 !important;
+            margin-top: 8px !important;
         }
 
         .flyer-subtitle {
             color: #cbd5e1 !important;
+            font-size: 16px !important;
+            letter-spacing: 0.14em !important;
         }
 
         .flyer-month-card {
             color: #fff8e8 !important;
-            background: rgba(6, 18, 37, 0.38);
-            border: 1px solid rgba(214, 181, 94, 0.28);
-            border-radius: 22px;
-            padding: 18px 22px;
+            min-width: 246px !important;
+            text-align: right !important;
+            background:
+                linear-gradient(180deg, rgba(16, 42, 86, 0.86), rgba(6, 18, 37, 0.86)) !important;
+            border: 1px solid rgba(214, 181, 94, 0.56) !important;
+            border-radius: 26px !important;
+            padding: 24px 26px !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 38px rgba(0, 0, 0, 0.28) !important;
+        }
+
+        .flyer-month-label {
+            color: #e8c76a !important;
+            font-size: 13px !important;
+            letter-spacing: 0.18em !important;
+        }
+
+        .flyer-month-name {
+            color: #fff8e8 !important;
+            font-size: 56px !important;
+            font-weight: 700 !important;
+            line-height: 1 !important;
+            margin-top: 10px !important;
+        }
+
+        .flyer-year {
+            color: #f4e8bf !important;
+            font-size: 24px !important;
+            font-weight: 800 !important;
+            margin-top: 8px !important;
+        }
+
+        .flyer-summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            padding: 28px 46px 6px;
+            background: linear-gradient(180deg, #071a33 0%, #0b1b35 100%);
+        }
+
+        .flyer-kpi {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            min-height: 82px;
+            border-radius: 20px;
+            padding: 15px 17px;
+            background: linear-gradient(145deg, rgba(16, 42, 86, 0.96), rgba(6, 18, 37, 0.9));
+            border: 1px solid rgba(244, 232, 191, 0.16);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 14px 32px rgba(0, 0, 0, 0.22);
+        }
+
+        .flyer-kpi.gold {
+            border-color: rgba(214, 181, 94, 0.34);
+            background: linear-gradient(145deg, rgba(56, 45, 24, 0.92), rgba(16, 42, 86, 0.86));
+        }
+
+        .flyer-kpi-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 16px;
+            color: #bfdbfe;
+            background: rgba(96, 165, 250, 0.16);
+            border: 1px solid rgba(96, 165, 250, 0.38);
+            box-shadow: 0 0 22px rgba(96, 165, 250, 0.16);
+        }
+
+        .flyer-kpi.gold .flyer-kpi-icon {
+            color: #f4e8bf;
+            background: rgba(214, 181, 94, 0.18);
+            border-color: rgba(214, 181, 94, 0.48);
+            box-shadow: 0 0 22px rgba(214, 181, 94, 0.14);
+        }
+
+        .flyer-kpi-value {
+            display: block;
+            color: #fff8e8;
+            font-size: 31px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .flyer-kpi-label {
+            display: block;
+            color: #e8c76a;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-top: 3px;
+        }
+
+        .flyer-kpi-desc {
+            display: block;
+            color: #cbd5e1;
+            font-size: 11px;
+            font-weight: 700;
+            margin-top: 2px;
         }
 
         .flyer-body {
             background:
-                radial-gradient(circle at 12% 0%, rgba(214, 181, 94, 0.12), transparent 18rem),
+                radial-gradient(circle at 12% 8%, rgba(214, 181, 94, 0.1), transparent 18rem),
                 linear-gradient(180deg, #0b1b35 0%, #061225 100%) !important;
-            padding: 38px 46px 34px !important;
+            padding: 30px 46px 38px !important;
         }
 
         .flyer-row {
-            grid-template-columns: 94px 1fr minmax(154px, auto) !important;
-            background: rgba(16, 42, 86, 0.62) !important;
-            border-color: rgba(244, 232, 191, 0.16) !important;
-            border-left-width: 5px !important;
-            border-radius: 22px !important;
-            padding: 15px 18px 15px 15px !important;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 18px 34px rgba(0, 0, 0, 0.22) !important;
+            grid-template-columns: 112px 1fr 238px !important;
+            column-gap: 22px !important;
+            min-height: 122px !important;
+            align-items: stretch !important;
+            background: linear-gradient(145deg, rgba(19, 47, 90, 0.92), rgba(9, 27, 53, 0.96)) !important;
+            border-color: rgba(244, 232, 191, 0.15) !important;
+            border-left-width: 8px !important;
+            border-radius: 26px !important;
+            padding: 18px 20px 18px 18px !important;
+            margin-bottom: 16px !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 20px 42px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        .flyer-row:nth-child(even) {
+            background: linear-gradient(145deg, rgba(16, 42, 86, 0.9), rgba(6, 18, 37, 0.97)) !important;
         }
 
         .flyer-row.virtual {
@@ -1045,72 +1191,188 @@
         }
 
         .flyer-row.festivo {
-            background: rgba(76, 29, 39, 0.55) !important;
+            background: linear-gradient(145deg, rgba(88, 35, 48, 0.78), rgba(24, 25, 46, 0.96)) !important;
             border-left-color: #fca5a5 !important;
         }
 
         .flyer-date {
+            display: flex !important;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             background: linear-gradient(180deg, #102a56 0%, #061225 100%) !important;
-            border-color: rgba(214, 181, 94, 0.78) !important;
-            border-radius: 16px !important;
-            padding: 12px 9px !important;
+            border-color: rgba(214, 181, 94, 0.72) !important;
+            border-radius: 20px !important;
+            padding: 13px 10px !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 26px rgba(0, 0, 0, 0.22) !important;
+        }
+
+        .flyer-row.presencial .flyer-date {
+            background: linear-gradient(180deg, #4d3a13 0%, #1d2743 100%) !important;
+        }
+
+        .flyer-row.festivo .flyer-date {
+            background: linear-gradient(180deg, #7f1d1d 0%, #28182c 100%) !important;
+            border-color: rgba(252, 165, 165, 0.65) !important;
+        }
+
+        .flyer-date-day {
+            color: #fff8e8;
+            font-size: 44px;
+            font-weight: 800;
+            line-height: 0.92;
+        }
+
+        .flyer-date-abbr {
+            color: #f4e8bf;
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            margin-top: 8px;
+            text-transform: uppercase;
+        }
+
+        .flyer-date-month {
+            color: #cbd5e1;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            margin-top: 4px;
+            text-transform: uppercase;
+        }
+
+        .flyer-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
         }
 
         .flyer-activity {
             color: #fff8e8 !important;
-            font-size: 19px !important;
+            font-size: 25px !important;
+            font-weight: 800 !important;
+            line-height: 1.14 !important;
+            letter-spacing: 0 !important;
+        }
+
+        .flyer-row.festivo .flyer-activity {
+            color: #fecaca !important;
+            text-decoration-color: rgba(252, 165, 165, 0.62) !important;
+        }
+
+        .flyer-meta {
+            gap: 10px !important;
+            margin-top: 14px !important;
         }
 
         .flyer-pill {
+            gap: 7px !important;
+            padding: 8px 12px !important;
+            font-size: 13px !important;
+            font-weight: 900 !important;
             background: rgba(255, 248, 232, 0.08) !important;
-            color: #cbd5e1 !important;
+            color: #dbeafe !important;
             border-color: rgba(244, 232, 191, 0.18) !important;
         }
 
         .flyer-pill.virtual {
-            background: rgba(37, 99, 235, 0.22) !important;
+            background: rgba(37, 99, 235, 0.25) !important;
             color: #bfdbfe !important;
-            border-color: rgba(96, 165, 250, 0.48) !important;
+            border-color: rgba(96, 165, 250, 0.56) !important;
         }
 
         .flyer-pill.presencial {
-            background: rgba(214, 181, 94, 0.16) !important;
+            background: rgba(214, 181, 94, 0.18) !important;
             color: #f4e8bf !important;
-            border-color: rgba(214, 181, 94, 0.52) !important;
+            border-color: rgba(214, 181, 94, 0.6) !important;
+        }
+
+        .flyer-status-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            min-width: 0;
         }
 
         .flyer-status {
-            min-width: 136px !important;
-            box-shadow: none !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            min-height: 52px;
+            border-radius: 18px !important;
+            padding: 12px 14px !important;
+            font-size: 13px !important;
+            line-height: 1.18;
+            text-transform: uppercase;
+            white-space: normal !important;
+            text-align: center;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 24px rgba(0, 0, 0, 0.18) !important;
+        }
+
+        .status-badge-ok {
+            background: linear-gradient(180deg, rgba(214, 181, 94, 0.28), rgba(86, 66, 24, 0.78)) !important;
+            color: #fff8e8 !important;
+            border-color: rgba(232, 199, 106, 0.62) !important;
         }
 
         .status-badge-assigned {
-            background: rgba(96, 165, 250, 0.16) !important;
-            color: #dbeafe !important;
-            border-color: rgba(96, 165, 250, 0.45) !important;
+            background: linear-gradient(180deg, rgba(96, 165, 250, 0.23), rgba(16, 42, 86, 0.82)) !important;
+            color: #e0f2fe !important;
+            border-color: rgba(96, 165, 250, 0.55) !important;
         }
 
         .status-badge-empty {
-            background: rgba(255, 248, 232, 0.08) !important;
-            color: #cbd5e1 !important;
-            border-color: rgba(203, 213, 225, 0.25) !important;
+            background: rgba(255, 248, 232, 0.06) !important;
+            color: #e5e7eb !important;
+            border-color: rgba(203, 213, 225, 0.42) !important;
+            border-style: dashed !important;
         }
 
         .status-badge-cancelled {
-            background: rgba(248, 113, 113, 0.14) !important;
+            background: linear-gradient(180deg, rgba(248, 113, 113, 0.2), rgba(87, 24, 37, 0.8)) !important;
             color: #fecaca !important;
-            border-color: rgba(248, 113, 113, 0.38) !important;
+            border-color: rgba(252, 165, 165, 0.54) !important;
         }
 
         .flyer-footer {
             background: linear-gradient(180deg, #061225 0%, #07162c 100%) !important;
             color: #cbd5e1 !important;
             border-top-color: rgba(214, 181, 94, 0.35) !important;
-            padding: 24px 46px !important;
+            padding: 28px 46px !important;
+            font-size: 14px !important;
         }
 
-        .flyer-footer .text-\[\#102a56\] {
+        .flyer-footer .text-\[\#102a56\],
+        .flyer-footer-strong {
             color: #f4e8bf !important;
+        }
+
+        .flyer-legend {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #cbd5e1;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .flyer-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            display: inline-block;
+        }
+
+        .flyer-legend-dot.virtual {
+            background: #60a5fa;
+            box-shadow: 0 0 14px rgba(96, 165, 250, 0.55);
+        }
+
+        .flyer-legend-dot.presencial {
+            background: #d6b55e;
+            box-shadow: 0 0 14px rgba(214, 181, 94, 0.48);
         }
 
         @media (max-width: 640px) {
@@ -1640,10 +1902,10 @@
     <!-- ÁREA DE CAPTURA PARA IMAGEN (INVISIBLE) -->
     <div id="capture-target">
         <div class="flyer-header">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center gap-5">
+            <div class="flyer-header-main">
+                <div class="flyer-brand-block">
                     <div class="flyer-logo-card">
-                        <img src="assets/mentes-brillantes-logo.jpeg" alt="Gimnasio Emocional Mentes Brillantes" class="brand-logo-img">
+                        <img src="assets/mentes-brillantes-logo-dorado.jpeg" onerror="this.onerror=null;this.src='assets/mentes-brillantes-logo.jpeg';" alt="Gimnasio Emocional Mentes Brillantes" class="flyer-logo-img">
                     </div>
                     <div>
                         <p class="flyer-kicker">Gimnasio Emocional</p>
@@ -1653,15 +1915,22 @@
                 </div>
                 <div class="flyer-month-card">
                     <div class="flyer-month-label">Calendario</div>
-                    <div class="text-5xl font-light leading-none mt-1" id="flyer-month">FEBRERO</div>
-                    <div class="text-xl font-bold text-[#f4e8bf] mt-1">2026</div>
+                    <div class="flyer-month-name" id="flyer-month">Febrero</div>
+                    <div class="flyer-year">2026</div>
                 </div>
             </div>
         </div>
+        <div class="flyer-summary" id="flyer-summary" aria-label="Resumen del mes para imagen"></div>
         <div class="flyer-body" id="flyer-list"></div>
         <div class="flyer-footer">
-            <p>Programaci&oacute;n sujeta a cambios</p>
-            <p class="font-bold text-[#102a56]">Gimnasio Emocional Mentes Brillantes</p>
+            <div>
+                <p>Programaci&oacute;n sujeta a cambios</p>
+                <p class="flyer-footer-strong font-bold">Gimnasio Emocional Mentes Brillantes</p>
+            </div>
+            <div class="flyer-legend">
+                <span><span class="flyer-legend-dot virtual"></span> Azul: Virtual</span>
+                <span><span class="flyer-legend-dot presencial"></span> Dorado: Presencial</span>
+            </div>
         </div>
     </div>
 
@@ -3331,6 +3600,29 @@
             } catch (err) { alert("Error al generar imagen. Usa Chrome/Edge."); }
         }
 
+        function renderFlyerSummary(summary) {
+            const container = document.getElementById('flyer-summary');
+            if (!container) return;
+
+            const cards = [
+                { id: 'fechas', label: 'Fechas', desc: 'programadas', icon: 'fa-calendar-days', value: summary.fechas, tone: 'blue' },
+                { id: 'asignadas', label: 'Asignadas', desc: 'con mentor', icon: 'fa-user-check', value: summary.asignadas, tone: 'gold' },
+                { id: 'virtuales', label: 'Virtuales', desc: 'en linea', icon: 'fa-video', value: summary.virtuales, tone: 'blue' },
+                { id: 'presenciales', label: 'Presenciales', desc: 'en sala', icon: 'fa-location-dot', value: summary.presenciales, tone: 'gold' }
+            ];
+
+            container.innerHTML = cards.map(card => `
+                <div class="flyer-kpi ${card.tone === 'gold' ? 'gold' : ''}" data-flyer-kpi="${card.id}">
+                    <span class="flyer-kpi-icon"><i class="fas ${card.icon}" aria-hidden="true"></i></span>
+                    <span>
+                        <span class="flyer-kpi-value">${card.value}</span>
+                        <span class="flyer-kpi-label">${card.label}</span>
+                        <span class="flyer-kpi-desc">${card.desc}</span>
+                    </span>
+                </div>
+            `).join('');
+        }
+
         async function descargarImagen(modo) {
             if (assignmentSaveInProgress) {
                 alert('Espera a que termine el guardado actual');
@@ -3360,8 +3652,10 @@
             const flyerList = document.getElementById('flyer-list');
             document.getElementById('flyer-month').innerText = MESES[mesSeleccionado];
             flyerList.innerHTML = '';
+            renderFlyerSummary({ fechas: 0, asignadas: 0, virtuales: 0, presenciales: 0 });
 
             let current = new Date(START_DATE);
+            const flyerSummary = { fechas: 0, asignadas: 0, virtuales: 0, presenciales: 0 };
             while (current <= END_DATE) {
                 if (current.getMonth() === mesSeleccionado) {
                     const day = current.getDay();
@@ -3378,10 +3672,17 @@
 
                         const modalLabel = isVirtual ? 'Virtual' : 'Presencial';
                         const assignedTo = asignaciones[dateKey];
+                        flyerSummary.fechas++;
+                        if (!isHoliday) {
+                            if (assignedTo) flyerSummary.asignadas++;
+                            if (isVirtual) flyerSummary.virtuales++;
+                            else flyerSummary.presenciales++;
+                        }
 
                         let actividad = confBase.actividad;
                         let horario = confBase.horario;
                         let dayAbbr = ABBR_DIAS[day];
+                        const monthAbbr = MESES[mesSeleccionado].substring(0, 3).toUpperCase();
 
                         if (configuracionDias[dateKey]) {
                             actividad = configuracionDias[dateKey].actividad;
@@ -3390,15 +3691,16 @@
 
                         let rowClass = isHoliday ? 'festivo' : (isVirtual ? 'virtual' : 'presencial');
                         let statusBadge = '';
-                        if (isHoliday) statusBadge = `<span class="flyer-status status-badge-cancelled"><i class="far fa-calendar-times"></i> Cancelado</span>`;
+                        if (isHoliday) statusBadge = `<span class="flyer-status status-badge-cancelled"><i class="far fa-calendar-times"></i> Cancelado / Festivo</span>`;
                         else if (modo === 'dispo') statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned"><i class="fas fa-lock"></i> Ocupado</span>` : `<span class="flyer-status status-badge-ok"><i class="fas fa-check"></i> Disponible</span>`;
                         else statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned"><i class="fas fa-user-check"></i> ${escapeHTML(assignedTo)}</span>` : `<span class="flyer-status status-badge-empty"><i class="far fa-circle"></i> Sin asignar</span>`;
 
                         flyerList.innerHTML += `
-                            <div class="flyer-row ${rowClass}">
+                            <article class="flyer-row ${rowClass}">
                                 <div class="flyer-date">
-                                    <div class="text-3xl font-bold leading-none">${current.getDate()}</div>
-                                    <div class="text-[10px] font-bold text-white/80 uppercase tracking-wider mt-1">${escapeHTML(dayAbbr)}</div>
+                                    <div class="flyer-date-day">${current.getDate()}</div>
+                                    <div class="flyer-date-abbr">${escapeHTML(dayAbbr)}</div>
+                                    <div class="flyer-date-month">${escapeHTML(monthAbbr)}</div>
                                 </div>
                                 <div class="flyer-content">
                                     <div class="flyer-activity ${isHoliday ? 'line-through opacity-50' : ''}">${escapeHTML(actividad)}</div>
@@ -3407,13 +3709,14 @@
                                         <span class="flyer-pill ${isVirtual ? 'virtual' : 'presencial'}">${!isHoliday ? `<i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'}"></i>${escapeHTML(modalLabel)}` : 'Festivo'}</span>
                                     </div>
                                 </div>
-                                <div>${statusBadge}</div>
-                            </div>
+                                <div class="flyer-status-wrap">${statusBadge}</div>
+                            </article>
                         `;
                     }
                 }
                 current.setDate(current.getDate() + 1);
             }
+            renderFlyerSummary(flyerSummary);
 
             showToast(assignmentSource === 'cache' ? 'Generando imagen con copia local...' : 'Generando imagen...');
             const element = document.getElementById("capture-target");

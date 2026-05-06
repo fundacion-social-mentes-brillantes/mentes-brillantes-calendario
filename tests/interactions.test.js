@@ -235,13 +235,17 @@ async function main() {
 
     const flyer = await page.evaluate(() => ({
       header: document.querySelector('#capture-target .flyer-title')?.textContent.trim() || '',
+      logoSrc: document.querySelector('#capture-target .flyer-logo-img')?.getAttribute('src') || '',
       month: document.getElementById('flyer-month')?.textContent.trim() || '',
+      summaryCards: document.querySelectorAll('#flyer-summary [data-flyer-kpi]').length,
       rows: document.querySelectorAll('#flyer-list .flyer-row').length,
       statuses: [...document.querySelectorAll('#flyer-list .flyer-status')].map((el) => el.textContent.trim()),
       downloads: window.__downloadClicks
     }));
     assert(flyer.header.includes('Mentes Brillantes'), 'El flyer no conserva encabezado institucional.');
+    assert(flyer.logoSrc.includes('mentes-brillantes-logo-dorado.jpeg'), 'El flyer no usa el logo dorado institucional.');
     assert(flyer.month.length > 0, 'El flyer no tiene mes.');
+    assert(flyer.summaryCards === 4, 'El flyer no genero el resumen KPI compacto.');
     assert(flyer.rows > 0, 'El flyer no genero filas.');
     assert(flyer.statuses.some((text) => text.includes('Mentora Test') || text.includes('Sin asignar')), 'El flyer no corresponde al modo asignados.');
     assert(flyer.downloads === 1, 'El flujo de imagen no llego al paso de descarga simulado.');
