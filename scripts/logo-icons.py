@@ -62,6 +62,13 @@ def hacer_icono(emblema, size, cobertura=0.66):
 
 emblema = cargar_emblema()
 print('emblema recortado:', emblema.size)
+
+# Emblema dorado transparente (sin recuadro) para el flyer/header.
+_th = 480
+_sc = _th / emblema.size[1]
+emblema.resize((max(1, round(emblema.size[0]*_sc)), _th), Image.LANCZOS).save(
+    os.path.join(OUT, 'emblema-dorado.png'))
+print('[OK] emblema-dorado.png')
 for nombre, size, cob in [('icon-512.png',512,0.60), ('icon-192.png',192,0.60),
                           ('apple-touch-icon.png',180,0.62), ('favicon-32.png',32,0.80)]:
     ico = hacer_icono(emblema, size, cob)
