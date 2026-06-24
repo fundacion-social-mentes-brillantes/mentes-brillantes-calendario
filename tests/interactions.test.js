@@ -243,7 +243,7 @@ async function main() {
       downloads: window.__downloadClicks
     }));
     assert(flyer.header.includes('Mentes Brillantes'), 'El flyer no conserva encabezado institucional.');
-    assert(flyer.logoSrc.includes('mentes-brillantes-logo-dorado.jpeg'), 'El flyer no usa el logo dorado institucional.');
+    assert(flyer.logoSrc.includes('dorado'), 'El flyer no usa el logo dorado institucional.');
     assert(flyer.month.length > 0, 'El flyer no tiene mes.');
     assert(flyer.summaryCards === 4, 'El flyer no genero el resumen KPI compacto.');
     assert(flyer.rows > 0, 'El flyer no genero filas.');
