@@ -1,0 +1,17 @@
+# Normalizar saltos de línea a LF en archivos de texto (consistencia multiplataforma)
+* text=auto eol=lf
+
+*.html        text eol=lf
+*.js          text eol=lf
+*.json        text eol=lf
+*.md          text eol=lf
+*.css         text eol=lf
+*.webmanifest text eol=lf
+*.rules       text eol=lf
+*.yml         text eol=lf
+
+# Imágenes y binarios: no tocar
+*.png  binary
+*.jpeg binary
+*.jpg  binary
+*.ico  binary

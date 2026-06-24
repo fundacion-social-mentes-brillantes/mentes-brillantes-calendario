@@ -3,8 +3,21 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Gestor Mentes Brillantes - Pro</title>
+    <meta name="description" content="Programación mensual del Gimnasio Emocional Mentes Brillantes. Consulta actividades, modalidad, horarios y mentores.">
+
+    <!-- PWA (instalable en iOS, Android y PC) -->
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#102a56">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/icon-192.png">
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mentes Brillantes">
+
     <!-- Librerías -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -1375,6 +1388,57 @@
             box-shadow: 0 0 14px rgba(214, 181, 94, 0.48);
         }
 
+
+        /* --- MOBILE HTML2CANVAS SAFE MODE --- */
+        #capture-target.mobile-capture-safe {
+            background: #061225 !important;
+        }
+
+        #capture-target.mobile-capture-safe .flyer-header,
+        #capture-target.mobile-capture-safe .flyer-summary,
+        #capture-target.mobile-capture-safe .flyer-body,
+        #capture-target.mobile-capture-safe .flyer-footer {
+            background: #061225 !important;
+            box-shadow: none !important;
+            filter: none !important;
+            backdrop-filter: none !important;
+        }
+
+        #capture-target.mobile-capture-safe .flyer-row {
+            background: #102a56 !important;
+            box-shadow: none !important;
+            filter: none !important;
+            backdrop-filter: none !important;
+        }
+
+        #capture-target.mobile-capture-safe .flyer-row:nth-child(even) {
+            background: #0b1b35 !important;
+        }
+
+        #capture-target.mobile-capture-safe .flyer-kpi {
+            background: #102a56 !important;
+            box-shadow: none !important;
+        }
+
+        #capture-target.mobile-capture-safe .flyer-date {
+            background: #071a33 !important;
+            box-shadow: none !important;
+        }
+
+        #capture-target.mobile-capture-safe .flyer-row.presencial .flyer-date {
+            background: #4d3a13 !important;
+        }
+
+        #capture-target.mobile-capture-safe .flyer-pill,
+        #capture-target.mobile-capture-safe .flyer-status {
+            box-shadow: none !important;
+            filter: none !important;
+        }
+
+        #capture-target.mobile-capture-safe .flyer-header::after {
+            background: #d6b55e !important;
+        }
+
         @media (max-width: 640px) {
             header.no-print > div {
                 padding-top: 0.85rem !important;
@@ -2471,13 +2535,41 @@
 
         // SEGURIDAD: Escapar HTML para evitar XSS
         function escapeHTML(str) {
-            if (!str) return '';
+            if (str === null || str === undefined) return '';
             return String(str)
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
+        }
+
+        // Copia robusta: usa la API moderna y cae a execCommand para iOS Safari / contextos
+        // sin navigator.clipboard. Devuelve una promesa que resuelve true/false.
+        async function copiarTexto(texto) {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(texto);
+                    return true;
+                }
+            } catch (e) { /* cae al fallback */ }
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = texto;
+                ta.setAttribute('readonly', '');
+                ta.style.position = 'fixed';
+                ta.style.top = '-9999px';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                ta.setSelectionRange(0, ta.value.length);
+                const ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                return ok;
+            } catch (e) {
+                return false;
+            }
         }
 
         function hydrateFromLocalSnapshot() {
@@ -2809,7 +2901,14 @@
             var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
             return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
         }
-        function formatDateKey(date) { return date.toISOString().split('T')[0]; }
+        function formatDateKey(date) {
+            // Usar componentes LOCALES (no toISOString/UTC) para evitar desfase de un día
+            // en zonas horarias al este de UTC. La clave indexa asignaciones, festivos y solicitudes.
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
 
         async function refreshAsignacionesFromCloud() {
             try {
@@ -3472,7 +3571,7 @@
             list.innerHTML = mentores.map(m => `
                 <div class="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100 mb-2">
                     <span class="font-medium text-slate-700">${escapeHTML(m)}</span>
-                    <button onclick="borrarMentor('${escapeHTML(m)}')" aria-label="Eliminar mentor ${escapeHTML(m)}" class="text-slate-400 hover:text-red-500"><i class="fas fa-trash"></i></button>
+                    <button data-mentor="${escapeHTML(m)}" onclick="borrarMentor(this.dataset.mentor)" aria-label="Eliminar mentor ${escapeHTML(m)}" class="text-slate-400 hover:text-red-500"><i class="fas fa-trash"></i></button>
                 </div>
             `).join('') || '<p class="text-center text-slate-400 text-sm italic">Sin mentores</p>';
         }
@@ -3492,113 +3591,18 @@
                 }
             }
         }
+        let toastTimeoutId = null;
         function showToast(msg) {
             const t = document.getElementById('toast-msg');
             const txt = document.getElementById('toast-text');
             txt.innerText = msg;
             t.classList.remove('hidden');
             t.classList.add('flex');
-            setTimeout(() => t.classList.add('hidden'), 3000);
+            if (toastTimeoutId) clearTimeout(toastTimeoutId);
+            toastTimeoutId = setTimeout(() => t.classList.add('hidden'), 3000);
         }
 
         // --- FUNCIONES EXPORTACIÓN IMAGEN ---
-
-        async function descargarImagenLegacy(modo) {
-            if (assignmentSaveInProgress) {
-                alert('Espera a que termine el guardado actual');
-                return;
-            }
-            showToast('Refrescando datos de la nube...');
-            let assignmentSource = 'cloud';
-            try {
-                await withTimeout(
-                    refreshAsignacionesFromCloud(),
-                    6000,
-                    'No se pudieron refrescar las asignaciones'
-                );
-            } catch (err) {
-                const snapshot = getLocalSnapshot();
-                if (snapshot?.asignaciones && Object.keys(snapshot.asignaciones).length > 0) {
-                    asignaciones = snapshot.asignaciones;
-                    assignmentSource = 'cache';
-                    showToast('Usando copia local de asignaciones');
-                } else {
-                    logCloudError('descargarImagen:refreshAsignaciones', err);
-                    alert(err.message || "Error: No se pudieron refrescar las asignaciones desde la nube.");
-                    return;
-                }
-            }
-            
-            const flyerList = document.getElementById('flyer-list');
-            document.getElementById('flyer-month').innerText = MESES[mesSeleccionado];
-            flyerList.innerHTML = '';
-
-            let current = new Date(START_DATE);
-            while (current <= END_DATE) {
-                if (current.getMonth() === mesSeleccionado) {
-                    const day = current.getDay();
-                    const confBase = configuracionBase[day];
-
-                    if (confBase && confBase.activo) {
-                        const dateKey = formatDateKey(current);
-                        const isoWeek = getISOWeek(current);
-                        const isHoliday = FESTIVOS.includes(dateKey);
-                        const isEven = isoWeek % 2 === 0;
-
-                        let isVirtual = isEven;
-                        if (confBase.esVirtualSiempre) isVirtual = true;
-
-                        const modalLabel = isVirtual ? 'Virtual' : 'Presencial';
-                        const assignedTo = asignaciones[dateKey];
-
-                        let actividad = confBase.actividad;
-                        let horario = confBase.horario;
-                        let dayAbbr = ABBR_DIAS[day];
-
-                        // SOBREESCRITURA PERSONALIZADA
-                        if (configuracionDias[dateKey]) {
-                            actividad = configuracionDias[dateKey].actividad;
-                            horario = configuracionDias[dateKey].horario;
-                        }
-
-                        let rowClass = isHoliday ? 'festivo' : (isVirtual ? 'virtual' : 'presencial');
-                        let statusBadge = '';
-                        if (isHoliday) statusBadge = `<span class="flyer-status status-badge-cancelled"><i class="far fa-calendar-times"></i> Cancelado</span>`;
-                        else if (modo === 'dispo') statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned"><i class="fas fa-lock"></i> Ocupado</span>` : `<span class="flyer-status status-badge-ok"><i class="fas fa-check"></i> Disponible</span>`;
-                        else statusBadge = assignedTo ? `<span class="flyer-status status-badge-assigned"><i class="fas fa-user-check"></i> ${assignedTo}</span>` : `<span class="flyer-status status-badge-empty"><i class="far fa-circle"></i> Sin asignar</span>`;
-
-                        flyerList.innerHTML += `
-                            <div class="flyer-row ${rowClass}">
-                                <div class="flyer-date">
-                                    <div class="text-3xl font-bold leading-none">${current.getDate()}</div>
-                                    <div class="text-[10px] font-bold text-white/80 uppercase tracking-wider mt-1">${dayAbbr}</div>
-                                </div>
-                                <div class="flyer-content">
-                                    <div class="flyer-activity ${isHoliday ? 'line-through opacity-50' : ''}">${escapeHTML(actividad)}</div>
-                                    <div class="flyer-meta">
-                                        ${!isHoliday ? `<span class="flyer-pill"><i class="far fa-clock"></i>${escapeHTML(horario)}</span>` : `<span class="flyer-pill"><i class="far fa-calendar-times"></i>Fecha no programable</span>`}
-                                        <span class="flyer-pill ${isVirtual ? 'virtual' : 'presencial'}">${!isHoliday ? `<i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'}"></i>${escapeHTML(modalLabel)}` : 'Festivo'}</span>
-                                    </div>
-                                </div>
-                                <div>${statusBadge}</div>
-                            </div>
-                        `;
-                    }
-                }
-                current.setDate(current.getDate() + 1);
-            }
-            showToast(assignmentSource === 'cache' ? 'Generando imagen con copia local...' : 'Generando imagen...');
-            const element = document.getElementById("capture-target");
-            try {
-                const html2canvas = await ensureHtml2CanvasLoaded();
-                const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-                const link = document.createElement('a');
-                link.download = `Programacion_${MESES[mesSeleccionado]}_${modo}.png`;
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-                showToast('¡Imagen descargada!');
-            } catch (err) { alert("Error al generar imagen. Usa Chrome/Edge."); }
-        }
 
         function renderFlyerSummary(summary) {
             const container = document.getElementById('flyer-summary');
@@ -3723,7 +3727,62 @@
             try {
                 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 768;
                 const html2canvas = await ensureHtml2CanvasLoaded();
-                const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+                const previousCaptureStyle = {
+                    position: element.style.position,
+                    top: element.style.top,
+                    left: element.style.left,
+                    zIndex: element.style.zIndex,
+                    opacity: element.style.opacity,
+                    pointerEvents: element.style.pointerEvents
+                };
+
+                if (isMobile) {
+                    element.classList.add('mobile-capture-safe');
+                    element.style.position = 'fixed';
+                    element.style.top = '0';
+                    element.style.left = '0';
+                    element.style.zIndex = '-1';
+                    element.style.opacity = '1';
+                    element.style.pointerEvents = 'none';
+                }
+
+                await document.fonts?.ready?.catch(() => {});
+                await Promise.all(
+                    Array.from(element.querySelectorAll('img')).map(img => {
+                        if (img.complete) return Promise.resolve();
+                        return new Promise(resolve => {
+                            img.onload = resolve;
+                            img.onerror = resolve;
+                        });
+                    })
+                );
+                await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+                let canvas;
+                try {
+                    canvas = await html2canvas(element, {
+                        scale: isMobile ? 1.15 : 2,
+                        useCORS: true,
+                        allowTaint: false,
+                        backgroundColor: '#061225',
+                        windowWidth: 1080,
+                        windowHeight: element.scrollHeight,
+                        scrollX: 0,
+                        scrollY: 0,
+                        logging: false
+                    });
+                } finally {
+                    if (isMobile) {
+                        element.classList.remove('mobile-capture-safe');
+                        element.style.position = previousCaptureStyle.position;
+                        element.style.top = previousCaptureStyle.top;
+                        element.style.left = previousCaptureStyle.left;
+                        element.style.zIndex = previousCaptureStyle.zIndex;
+                        element.style.opacity = previousCaptureStyle.opacity;
+                        element.style.pointerEvents = previousCaptureStyle.pointerEvents;
+                    }
+                }
+
                 const blob = await canvasToBlob(canvas);
                 const fileName = `Programacion_${MESES[mesSeleccionado]}_${modo}.png`;
                 const objectUrl = URL.createObjectURL(blob);
@@ -3821,9 +3880,14 @@
                 current.setDate(current.getDate() + 1);
             }
             if (contador === 0) texto += "No hay eventos programados.";
-            navigator.clipboard.writeText(texto).then(() => {
-                showToast('Copiado para WhatsApp');
-                alert('¡Listo! Texto copiado. Abre WhatsApp y pégalo.');
+            copiarTexto(texto).then((ok) => {
+                if (ok) {
+                    showToast('Copiado para WhatsApp');
+                    alert('¡Listo! Texto copiado. Abre WhatsApp y pégalo.');
+                } else {
+                    showToast('No se pudo copiar automáticamente');
+                    alert('No se pudo copiar automáticamente. Selecciona y copia el texto manualmente.');
+                }
             });
         }
         // --- FLUJO APARTAR FECHAS PUBLICO ---
@@ -3922,10 +3986,9 @@
 
         function copiarMensajeExito() {
             const texto = document.getElementById('exito-mensaje-texto').innerText;
-            navigator.clipboard.writeText(texto).then(() => {
-                showToast('¡Mensaje copiado!');
-            }).catch(() => {
-                alert('No se pudo copiar automáticamente. Por favor selecciónalo manualmente en pantalla.');
+            copiarTexto(texto).then((ok) => {
+                if (ok) showToast('¡Mensaje copiado!');
+                else alert('No se pudo copiar automáticamente. Por favor selecciónalo manualmente en pantalla.');
             });
         }
 
@@ -3972,7 +4035,7 @@
                                 <p class="text-sm text-slate-500 flex items-center mt-1"><i class="far fa-calendar-alt w-4 h-4 mr-1"></i> ${escapeHTML(s.fecha_texto)}</p>
                                 <p class="text-sm text-slate-500 flex items-center"><i class="fas fa-tag w-4 h-4 mr-1"></i> ${escapeHTML(s.actividad)} (${escapeHTML(s.modalidad)})</p>
                                 <p class="text-xs text-slate-400 mt-2"><i class="far fa-clock"></i> Solicitado el: ${formattedDate}</p>
-                                <div class="bg-slate-50 p-2 text-xs rounded border mt-2 font-mono text-slate-600 break-all cursor-pointer hover:bg-slate-100" onclick="navigator.clipboard.writeText('${escapeHTML(s.mensaje_whatsapp)}'); showToast('Copiado');" title="Click para copiar mensaje">
+                                <div class="bg-slate-50 p-2 text-xs rounded border mt-2 font-mono text-slate-600 break-all cursor-pointer hover:bg-slate-100" data-copy="${escapeHTML(s.mensaje_whatsapp)}" onclick="copiarTexto(this.dataset.copy).then(function(ok){ showToast(ok ? 'Copiado' : 'No se pudo copiar'); })" title="Click para copiar mensaje">
                                     "${escapeHTML(s.mensaje_whatsapp)}" <i class="far fa-copy float-right mt-0.5"></i>
                                 </div>
                             </div>
@@ -4044,6 +4107,15 @@
                     alert("Error al rechazar solicitud.");
                 }
             }
+        }
+
+        // --- PWA: registro del Service Worker (instalable + carga offline del shell) ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('/sw.js').catch(function (err) {
+                    console.warn('[PWA] No se pudo registrar el Service Worker', err);
+                });
+            });
         }
     </script>
 </body>

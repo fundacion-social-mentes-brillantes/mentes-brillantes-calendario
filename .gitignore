@@ -10,3 +10,6 @@ scripts/serviceAccountKey.json
 .firebase/
 firestore-debug.log
 ui-debug.log
+
+# Artefactos de verificacion local
+tests/*.png
