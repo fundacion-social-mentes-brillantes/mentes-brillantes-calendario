@@ -5,7 +5,7 @@
  *  - Peticiones cross-origin (Firebase, Google Fonts, CDNs): NO se interceptan (van directo a la red).
  * Subir el número de versión invalida cachés viejas.
  */
-const CACHE = 'mb-cal-v1';
+const CACHE = 'mb-cal-v2';
 const SHELL = [
   '/',
   '/manifest.webmanifest',

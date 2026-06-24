@@ -11,7 +11,7 @@
     "test:interactions": "node tests/interactions.test.js",
     "test:rules": "firebase emulators:exec --only firestore \"jest tests/rules.test.js\"",
     "test:pwa": "node tests/pwa-verify.js",
-    "icons": "node scripts/generate-icons.js",
+    "icons": "python scripts/logo-icons.py assets && python scripts/og-image.py assets",
     "build": "node scripts/mobile-flyer-patch.js && node scripts/build-static.js"
   },
   "devDependencies": {

@@ -18,11 +18,26 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mentes Brillantes">
 
+    <!-- Open Graph / vista previa al compartir (WhatsApp, redes) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Mentes Brillantes · Gestor de Programación">
+    <meta property="og:description" content="Programación mensual del Gimnasio Emocional Mentes Brillantes.">
+    <meta property="og:url" content="https://mentes-brillantes-calendario.vercel.app/">
+    <meta property="og:image" content="https://mentes-brillantes-calendario.vercel.app/assets/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="es_CO">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Mentes Brillantes · Gestor de Programación">
+    <meta name="twitter:description" content="Programación mensual del Gimnasio Emocional Mentes Brillantes.">
+    <meta name="twitter:image" content="https://mentes-brillantes-calendario.vercel.app/assets/og-image.png">
+
     <!-- Librerías -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap"
@@ -1929,6 +1944,13 @@
                     <i class="fas fa-print" aria-hidden="true"></i><span class="sr-only">Imprimir PDF</span>
                 </button>
 
+                <!-- Botón INSTALAR APP (PWA) -->
+                <button type="button" id="btn-install-pwa" onclick="handleInstallClick()" aria-label="Instalar aplicación"
+                    class="hidden btn-light-institutional px-3 py-2 rounded-lg text-sm font-semibold shadow-sm items-center gap-2 transition-all"
+                    title="Instalar app">
+                    <i class="fas fa-download" aria-hidden="true"></i> <span class="hidden sm:inline">Instalar</span>
+                </button>
+
                 <!-- Botón WhatsApp -->
                 <button onclick="copiarParaWhatsapp()" aria-label="Copiar texto para WhatsApp"
                     class="bg-[#1f9d67] hover:bg-[#188258] text-white px-3 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all"
@@ -1945,6 +1967,22 @@
         </div>
     </header>
 
+    <!-- MODAL INSTRUCCIONES INSTALAR EN iOS -->
+    <div id="ios-install-help" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 no-print" role="dialog" aria-modal="true" aria-labelledby="ios-install-title" onclick="cerrarIosInstall(event)">
+        <div class="bg-white w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl p-5 m-0 sm:m-4 shadow-xl">
+            <div class="flex items-center gap-2 mb-3">
+                <i class="fas fa-mobile-alt text-[#102a56] text-lg" aria-hidden="true"></i>
+                <h3 id="ios-install-title" class="font-bold text-[#102a56] brand-font">Instalar en iPhone/iPad</h3>
+            </div>
+            <ol class="text-sm text-slate-600 space-y-2 list-decimal pl-5">
+                <li>Toca el botón <strong>Compartir</strong> <i class="fas fa-arrow-up-from-bracket" aria-hidden="true"></i> en la barra de Safari.</li>
+                <li>Elige <strong>Agregar a pantalla de inicio</strong>.</li>
+                <li>Confirma con <strong>Agregar</strong>.</li>
+            </ol>
+            <button type="button" onclick="cerrarIosInstall()" class="btn-institutional w-full mt-4 px-4 py-2 rounded-lg text-sm font-semibold">Entendido</button>
+        </div>
+    </div>
+
     <!-- UI WEB (CONTENIDO) -->
     <main class="max-w-6xl mx-auto p-4 md:p-8 no-print flex-grow">
         <!-- Navegación Meses -->
@@ -1959,6 +1997,8 @@
                 class="text-sm font-semibold text-[#765714] bg-[#fffaf0] px-3 py-1 rounded-full border border-[#e5dcc2] shadow-sm">2026</span>
         </div>
         <section id="month-summary-kpis" class="month-summary-grid mb-7" aria-label="Resumen visual del mes"></section>
+        <!-- Banner de recordatorios de fechas próximas -->
+        <section id="recordatorios-banner" class="hidden mb-7 rounded-2xl border border-[#e5dcc2] bg-[#fffaf0] p-4 md:p-5 shadow-sm no-print" aria-label="Recordatorios de fechas próximas"></section>
         <!-- Grid Web -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="grid-web"></div>
     </main>
@@ -2189,6 +2229,16 @@
         let assignmentSaveInProgress = false;
         const LOCAL_CACHE_KEY = 'mb_calendario_cloud_snapshot_v1';
 
+        // --- FIREBASE APP CHECK (anti-abuso, opcional) ---
+        // 1) Crea un proveedor reCAPTCHA v3 en Firebase Console > App Check y pega aquí la SITE KEY pública.
+        //    Si esta constante queda vacía, App Check NO se inicializa y la app funciona igual que hoy.
+        // 2) NO actives "Enforce" en App Check para Firestore hasta tener la key puesta y desplegada,
+        //    o se rechazarían TODAS las lecturas/escrituras (incluidas las públicas).
+        const APPCHECK_SITE_KEY = '';
+        // Para desarrollo local: true hace que la SDK imprima un token de debug en consola (regístralo en
+        // App Check > Manage debug tokens). Solo se usa en localhost/127.0.0.1.
+        const APPCHECK_DEBUG_TOKEN = true;
+
         // --- FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyBDtINIcLWLnc1nidwOixD_rbyKB1S7uDk",
@@ -2200,6 +2250,24 @@
             measurementId: "G-P6C1ZJCX54"
         };
         firebase.initializeApp(firebaseConfig);
+
+        // App Check: solo si hay site key configurada (evita romper nada antes de tenerla).
+        if (APPCHECK_SITE_KEY) {
+            try {
+                const esLocalAC = ['localhost', '127.0.0.1'].includes(location.hostname);
+                if (esLocalAC && APPCHECK_DEBUG_TOKEN) {
+                    // Debe fijarse ANTES de activate(): la SDK lo lee al activar.
+                    self.FIREBASE_APPCHECK_DEBUG_TOKEN = APPCHECK_DEBUG_TOKEN;
+                }
+                firebase.appCheck().activate(
+                    new firebase.appCheck.ReCaptchaV3Provider(APPCHECK_SITE_KEY),
+                    true // isTokenAutoRefreshEnabled
+                );
+            } catch (error) {
+                console.warn('[App Check] No se pudo activar', error);
+            }
+        }
+
         const firebaseAuth = firebase.auth();
         const firestore = firebase.firestore();
         firestore.enablePersistence({ synchronizeTabs: true }).catch((error) => {
@@ -2812,6 +2880,7 @@
             } finally {
                 verificarEstadoBotonesAdmin();
                 renderTodo();
+                dispararNotificacionesProximas();
             }
         }
 
@@ -3048,6 +3117,118 @@
             return ev.esVirtualSiempre || isEven ? 'virtual' : 'presencial';
         }
 
+        // --- RECORDATORIOS DE FECHAS PRÓXIMAS (local, sin backend) ---
+        const RECORDATORIOS_DIAS = 3;
+        const KEY_RECORD_ACTIVO = 'mb_recordatorios_activo';
+        const KEY_RECORD_NOTIFICADOS = 'mb_recordatorios_notificados';
+
+        function getFechasProximas(diasN = RECORDATORIOS_DIAS) {
+            const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+            // Ventana inclusiva de diasN días naturales contando hoy (hoy, +1, ... = diasN días).
+            const limite = new Date(hoy); limite.setDate(limite.getDate() + diasN - 1);
+            const out = [];
+            let current = new Date(START_DATE);
+            while (current <= END_DATE) {
+                const dia0 = new Date(current); dia0.setHours(0, 0, 0, 0);
+                if (dia0 >= hoy && dia0 <= limite) {
+                    const day = current.getDay();
+                    const confBase = configuracionBase[day];
+                    if (confBase && confBase.activo) {
+                        const dateKey = formatDateKey(current);
+                        if (asignaciones[dateKey] && !FESTIVOS.includes(dateKey)) {
+                            const ov = configuracionDias[dateKey];
+                            out.push({
+                                dateKey,
+                                dayIdx: day,
+                                dayNum: current.getDate(),
+                                mes: current.getMonth(),
+                                mentor: asignaciones[dateKey],
+                                actividad: (ov ? ov.actividad : confBase.actividad) || '',
+                                modo: calcularModoEvento({ isoWeek: getISOWeek(current), esVirtualSiempre: confBase.esVirtualSiempre })
+                            });
+                        }
+                    }
+                }
+                current.setDate(current.getDate() + 1);
+            }
+            return out;
+        }
+
+        function renderRecordatorios() {
+            const cont = document.getElementById('recordatorios-banner');
+            if (!cont) return;
+            const lista = getFechasProximas();
+            if (lista.length === 0) { cont.classList.add('hidden'); cont.innerHTML = ''; return; }
+            cont.classList.remove('hidden');
+            const soportado = ('Notification' in window);
+            const yaConcedido = soportado && Notification.permission === 'granted';
+            const btnTxt = yaConcedido ? '\u{1F514} Recordatorios activos' : '\u{1F514} Activar recordatorios';
+            const items = lista.map(r => `
+                <li class="flex items-center justify-between gap-3 py-2 border-b border-[#e5dcc2]/60 last:border-0">
+                    <div class="flex items-center gap-3">
+                        <div class="text-center min-w-[2.6rem]">
+                            <div class="text-[10px] font-bold text-[#765714] uppercase">${escapeHTML(ABBR_DIAS[r.dayIdx])}</div>
+                            <div class="text-lg font-bold text-[#102a56] leading-none">${r.dayNum}</div>
+                            <div class="text-[9px] font-bold text-[#765714] uppercase">${escapeHTML(MESES[r.mes].substring(0, 3))}</div>
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold text-[#102a56]">${escapeHTML(r.actividad)}</div>
+                            <div class="text-xs text-slate-600 font-semibold"><i class="fas fa-user-check text-[#d6b55e] mr-1" aria-hidden="true"></i>${escapeHTML(r.mentor)}</div>
+                        </div>
+                    </div>
+                    <span class="institutional-badge ${r.modo === 'virtual' ? 'badge-virtual' : 'badge-presencial'}">${r.modo === 'virtual' ? 'Virtual' : 'Presencial'}</span>
+                </li>`).join('');
+            cont.innerHTML = `
+                <div class="flex items-center justify-between gap-3 mb-2 flex-wrap">
+                    <h3 class="text-base font-bold text-[#102a56] brand-font">\u{1F4C5} Próximas fechas asignadas (${RECORDATORIOS_DIAS} días)</h3>
+                    <button type="button" onclick="activarRecordatorios()" class="btn-light-institutional text-xs px-3 py-1.5 rounded-full"${yaConcedido ? ' disabled' : ''}>${btnTxt}</button>
+                </div>
+                <ul class="m-0 p-0 list-none">${items}</ul>
+                <p class="text-[11px] text-slate-500 mt-2 leading-snug">Los avisos son locales: solo se muestran al abrir la app en este dispositivo. No hay servidor que envíe notificaciones si la app está cerrada.</p>`;
+        }
+
+        function activarRecordatorios() {
+            if (!('Notification' in window)) { showToast('Este navegador no admite notificaciones'); return; }
+            if (Notification.permission === 'granted') {
+                localStorage.setItem(KEY_RECORD_ACTIVO, '1');
+                dispararNotificacionesProximas();
+                renderRecordatorios();
+                return;
+            }
+            if (Notification.permission === 'denied') { showToast('Permiso bloqueado; habilítalo en el navegador'); return; }
+            Notification.requestPermission().then((p) => {
+                if (p === 'granted') {
+                    localStorage.setItem(KEY_RECORD_ACTIVO, '1');
+                    showToast('Recordatorios activados');
+                    dispararNotificacionesProximas();
+                }
+                renderRecordatorios();
+            }).catch(() => { /* ignorar */ });
+        }
+
+        function dispararNotificacionesProximas() {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            if (localStorage.getItem(KEY_RECORD_ACTIVO) !== '1') return;
+            const hoyKey = formatDateKey(new Date());
+            let notificados = {};
+            try { notificados = JSON.parse(localStorage.getItem(KEY_RECORD_NOTIFICADOS) || '{}'); } catch (e) { notificados = {}; }
+            // Purga claves de días anteriores para no crecer sin límite.
+            Object.keys(notificados).forEach((k) => { if (!k.endsWith('|' + hoyKey)) delete notificados[k]; });
+            getFechasProximas().forEach((r) => {
+                const dedupKey = `${r.dateKey}|${hoyKey}`;
+                if (notificados[dedupKey]) return;
+                try {
+                    new Notification('Mentes Brillantes · fecha próxima', {
+                        body: `${ABBR_DIAS[r.dayIdx]} ${r.dayNum}: ${r.actividad} (${r.mentor})`,
+                        tag: r.dateKey,
+                        icon: '/assets/icon-192.png'
+                    });
+                    notificados[dedupKey] = 1;
+                } catch (e) { /* ignorar fallos de Notification */ }
+            });
+            try { localStorage.setItem(KEY_RECORD_NOTIFICADOS, JSON.stringify(notificados)); } catch (e) { /* ignorar */ }
+        }
+
         function renderMonthSummary(eventosMes) {
             const container = document.getElementById('month-summary-kpis');
             if (!container) return;
@@ -3134,12 +3315,14 @@
 
             if (eventosMes.length === 0) {
                 renderMonthSummary(eventosMes);
+                renderRecordatorios();
                 gridWeb.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">Sin programación</div>`;
                 pdfTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-slate-400 italic">No hay programación para este mes</td></tr>`;
                 return;
             }
 
             renderMonthSummary(eventosMes);
+            renderRecordatorios();
 
             eventosMes.forEach(ev => {
                 const isVirtual = calcularModoEvento(ev) === 'virtual';
@@ -4108,6 +4291,52 @@
                 }
             }
         }
+
+        // --- PWA: botón "Instalar app" ---
+        let deferredInstallPrompt = null;
+        function esStandalone() {
+            return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        }
+        function esIOS() {
+            return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+        }
+        function mostrarBotonInstall() {
+            const b = document.getElementById('btn-install-pwa');
+            if (b) { b.classList.remove('hidden'); b.classList.add('flex'); }
+        }
+        function ocultarBotonInstall() {
+            const b = document.getElementById('btn-install-pwa');
+            if (b) { b.classList.add('hidden'); b.classList.remove('flex'); }
+        }
+        function cerrarIosInstall(ev) {
+            // Cierra solo al pulsar "Entendido" (sin ev) o al tocar el fondo del overlay (no la tarjeta).
+            if (ev && ev.target && ev.target.id !== 'ios-install-help') return;
+            const m = document.getElementById('ios-install-help');
+            if (m) m.classList.add('hidden');
+        }
+        async function handleInstallClick() {
+            if (esIOS()) {
+                const m = document.getElementById('ios-install-help');
+                if (m) m.classList.remove('hidden');
+                return;
+            }
+            if (!deferredInstallPrompt) return;
+            deferredInstallPrompt.prompt();
+            try { await deferredInstallPrompt.userChoice; } catch (e) { /* ignorar */ }
+            deferredInstallPrompt = null;
+            ocultarBotonInstall();
+        }
+        window.addEventListener('beforeinstallprompt', function (e) {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+            if (!esStandalone()) mostrarBotonInstall();
+        });
+        window.addEventListener('appinstalled', function () {
+            deferredInstallPrompt = null;
+            ocultarBotonInstall();
+        });
+        // iOS Safari no dispara beforeinstallprompt: mostrar el botón (abrirá instrucciones).
+        if (!esStandalone() && esIOS()) mostrarBotonInstall();
 
         // --- PWA: registro del Service Worker (instalable + carga offline del shell) ---
         if ('serviceWorker' in navigator) {
