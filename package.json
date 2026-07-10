@@ -4,7 +4,7 @@
   "private": true,
   "description": "Calendario estatico de Gimnasio Emocional Mentes Brillantes.",
   "scripts": {
-    "test": "npm run test:js && npm run test:html && npm run test:smoke && npm run test:interactions && npm run test:rules",
+    "test": "npm run test:js && npm run test:html && npm run test:smoke && npm run test:interactions && npm run test:pwa && npm run test:rules",
     "test:js": "node scripts/validate-inline-js.js",
     "test:html": "node scripts/validate-html-ids.js",
     "test:smoke": "node tests/smoke.test.js",

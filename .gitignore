@@ -1,6 +1,7 @@
 backup_mentes_brillantes_*.json
 temp_repo/
 node_modules/
+dist/
 
 .vercel
 serviceAccountKey.json

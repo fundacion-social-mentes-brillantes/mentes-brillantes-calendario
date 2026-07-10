@@ -1,5 +1,5 @@
-// Verificación PWA local (no forma parte de npm test). Sirve el proyecto y comprueba
-// manifest, service worker e iconos en un navegador real, con captura móvil.
+// Verificación PWA y responsive local. Sirve el proyecto y comprueba manifest,
+// service worker, iconos y contratos móviles en un navegador real.
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -61,6 +61,34 @@ function startServer() {
     return { ok: r.ok, ct: r.headers.get('content-type') };
   });
 
+  // 5) contratos responsive y táctiles de la vista de 390 px
+  const mobile = await page.evaluate(() => {
+    const activeMonth = document.querySelector('#meses-container [aria-current="date"]');
+    const monthRail = document.getElementById('meses-container');
+    const activeRect = activeMonth?.getBoundingClientRect();
+    const railRect = monthRail?.getBoundingClientRect();
+    const visibleHeaderButtons = [...document.querySelectorAll('header button')].filter((button) => {
+      const style = getComputedStyle(button);
+      const rect = button.getBoundingClientRect();
+      return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+    });
+    const kpiHeights = [...document.querySelectorAll('.kpi-card')].map((card) => card.getBoundingClientRect().height);
+    const captureTarget = document.getElementById('capture-target');
+
+    return {
+      noPageOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      headerHeight: document.querySelector('header')?.getBoundingClientRect().height || 0,
+      activeMonthVisible: !!(activeRect && railRect && activeRect.left >= railRect.left - 1 && activeRect.right <= railRect.right + 1),
+      toolsButtonVisible: getComputedStyle(document.getElementById('btn-more-tools')).display !== 'none',
+      touchTargetsOk: visibleHeaderButtons.every((button) => {
+        const rect = button.getBoundingClientRect();
+        return rect.width >= 44 && rect.height >= 44;
+      }),
+      compactKpis: kpiHeights.length === 4 && Math.max(...kpiHeights) <= 110,
+      hiddenFlyerAccessible: captureTarget?.getAttribute('aria-hidden') === 'true' && captureTarget.hasAttribute('inert')
+    };
+  });
+
   await page.screenshot({ path: path.join(root, 'tests', 'pwa-mobile.png'), fullPage: false });
 
   console.log('manifest.ok        =', manifest.ok, '| icons:', manifest.json.icons?.length, '| name:', manifest.json.name);
@@ -68,11 +96,14 @@ function startServer() {
   console.log('serviceWorker.ready=', swReady);
   console.log('head PWA tags      =', JSON.stringify(head));
   console.log('icon-512 reachable =', icon.ok, icon.ct);
+  console.log('mobile responsive  =', JSON.stringify(mobile));
   console.log('pageerrors         =', errors.length ? errors : 'ninguno');
 
   const pass = manifest.ok && manifest.json.icons?.length >= 2 && swReady &&
-    head.manifestLink && head.appleIcon && head.themeColor && icon.ok && errors.length === 0;
-  console.log(pass ? '\n✅ PWA OK: instalable y sin errores de página.' : '\n❌ PWA con problemas.');
+    head.manifestLink && head.appleIcon && head.themeColor && icon.ok && errors.length === 0 &&
+    mobile.noPageOverflow && mobile.headerHeight <= 150 && mobile.activeMonthVisible &&
+    mobile.toolsButtonVisible && mobile.touchTargetsOk && mobile.compactKpis && mobile.hiddenFlyerAccessible;
+  console.log(pass ? '\n✅ PWA y responsive OK: instalable, compacta y sin errores de página.' : '\n❌ PWA o responsive con problemas.');
 
   await browser.close();
   server.close();

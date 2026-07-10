@@ -9,7 +9,7 @@
 
     <!-- PWA (instalable en iOS, Android y PC) -->
     <link rel="manifest" href="/manifest.webmanifest">
-    <meta name="theme-color" content="#102a56">
+    <meta name="theme-color" content="#071326">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/assets/icon-192.png">
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
@@ -1695,6 +1695,1321 @@
             }
         }
 
+        /* --- CALM ORBIT UI · JULIO 2026 ---
+           Capa final, acotada a la interfaz web. No toca flyer ni PDF. */
+        :root {
+            --orbit-bg: #041021;
+            --orbit-bg-soft: #07172d;
+            --orbit-surface: rgba(10, 28, 53, 0.82);
+            --orbit-surface-solid: #0b213e;
+            --orbit-surface-raised: #102947;
+            --orbit-line: rgba(174, 197, 226, 0.15);
+            --orbit-line-strong: rgba(232, 199, 106, 0.34);
+            --orbit-text: #fffaf0;
+            --orbit-muted: #bcc9da;
+            --orbit-faint: #8394ab;
+            --orbit-gold: #e4c66f;
+            --orbit-gold-soft: #fff0b5;
+            --orbit-blue: #74b9ff;
+            --orbit-green: #6ee7b7;
+            --orbit-danger: #fda4af;
+            --orbit-shadow: 0 24px 56px rgba(0, 0, 0, 0.3);
+        }
+
+        html {
+            background: var(--orbit-bg);
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-width: 320px;
+            background:
+                radial-gradient(circle at 11% 2%, rgba(228, 198, 111, 0.12), transparent 24rem),
+                radial-gradient(circle at 88% 16%, rgba(116, 185, 255, 0.12), transparent 29rem),
+                linear-gradient(155deg, #03101f 0%, #07172d 48%, #041021 100%) !important;
+            color: var(--orbit-text);
+        }
+
+        button,
+        select,
+        input,
+        textarea {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button:focus-visible,
+        select:focus-visible,
+        input:focus-visible,
+        textarea:focus-visible,
+        [tabindex]:focus-visible {
+            outline: 3px solid rgba(228, 198, 111, 0.72) !important;
+            outline-offset: 3px;
+        }
+
+        .app-shell {
+            isolation: isolate;
+            background:
+                linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+                transparent !important;
+            background-size: 72px 72px !important;
+        }
+
+        .app-shell::before {
+            width: 30rem;
+            height: 30rem;
+            left: -16rem;
+            top: 12rem;
+            opacity: 0.55;
+            background: radial-gradient(circle, rgba(228, 198, 111, 0.12), transparent 69%);
+        }
+
+        .app-shell::after {
+            width: 34rem;
+            height: 34rem;
+            right: -18rem;
+            top: 23rem;
+            opacity: 0.48;
+            background: radial-gradient(circle, rgba(116, 185, 255, 0.1), transparent 70%);
+        }
+
+        /* Encabezado: una sola franja clara, sin apilar controles innecesariamente. */
+        header.app-header {
+            padding: 0 !important;
+            background: rgba(3, 14, 29, 0.88) !important;
+            border-bottom: 1px solid var(--orbit-line) !important;
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22) !important;
+            -webkit-backdrop-filter: blur(18px);
+            backdrop-filter: blur(18px);
+        }
+
+        .app-header-inner {
+            width: 100%;
+            max-width: 92rem !important;
+            min-height: 5rem;
+            padding: 0.65rem clamp(1rem, 3vw, 2.2rem) !important;
+            gap: 1.25rem !important;
+            flex-wrap: nowrap;
+        }
+
+        .header-logo {
+            min-width: 0;
+            flex: 0 1 auto;
+        }
+
+        .brand-logo-header {
+            width: 3.55rem !important;
+            height: 3.55rem !important;
+            flex: 0 0 auto;
+            border-width: 1px !important;
+            box-shadow: 0 0 0 5px rgba(228, 198, 111, 0.06), 0 12px 30px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .header-logo h1 {
+            color: var(--orbit-text) !important;
+            font-size: clamp(1.05rem, 2vw, 1.35rem) !important;
+            letter-spacing: -0.02em;
+            text-shadow: none;
+        }
+
+        .header-logo p {
+            color: var(--orbit-gold) !important;
+            font-size: 0.74rem !important;
+            letter-spacing: 0.04em;
+        }
+
+        .header-actions {
+            min-width: 0;
+            max-width: 100%;
+            margin-left: auto;
+            display: flex !important;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.48rem !important;
+        }
+
+        .mobile-tools {
+            display: contents;
+        }
+
+        .mobile-tools-heading,
+        .mobile-more-tools,
+        #mobile-tools-backdrop {
+            display: none;
+        }
+
+        .mobile-tool-label {
+            display: none;
+        }
+
+        .header-actions > .h-8 {
+            background: var(--orbit-line) !important;
+            margin-inline: 0.2rem !important;
+        }
+
+        .header-actions > button:not(.hidden),
+        .mobile-tools > button:not(.hidden),
+        #btn-backup-admin > button {
+            align-items: center;
+            justify-content: center;
+            min-width: 2.75rem;
+            min-height: 2.75rem;
+            padding: 0.62rem 0.82rem !important;
+            border-radius: 0.85rem !important;
+            background: rgba(13, 35, 65, 0.72) !important;
+            color: var(--orbit-muted) !important;
+            border: 1px solid var(--orbit-line) !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
+            transition: transform 180ms ease, color 180ms ease, border-color 180ms ease, background 180ms ease;
+        }
+
+        #btn-config-admin:not(.hidden),
+        #btn-team-admin:not(.hidden),
+        #btn-solicitudes-admin:not(.hidden),
+        #btn-install-pwa:not(.hidden) {
+            display: inline-flex;
+        }
+
+        .header-actions > button:not(.hidden):hover,
+        .mobile-tools > button:not(.hidden):hover,
+        #btn-backup-admin > button:hover {
+            transform: translateY(-1px);
+            color: var(--orbit-text) !important;
+            border-color: rgba(228, 198, 111, 0.34) !important;
+            background: rgba(17, 45, 82, 0.9) !important;
+        }
+
+        #btn-image-desktop,
+        #btn-image-mobile {
+            background: linear-gradient(135deg, #fff0b5 0%, #e4c66f 56%, #bf9440 100%) !important;
+            color: #071326 !important;
+            border-color: rgba(255, 240, 181, 0.74) !important;
+            box-shadow: 0 10px 25px rgba(228, 198, 111, 0.17), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+        }
+
+        .mobile-tools > button[aria-label="Copiar texto para WhatsApp"] {
+            color: #b7f7d8 !important;
+            background: rgba(16, 113, 78, 0.18) !important;
+            border-color: rgba(110, 231, 183, 0.28) !important;
+        }
+
+        #menu-backup-admin > div {
+            background: #0a1d37 !important;
+            border-color: var(--orbit-line) !important;
+            box-shadow: var(--orbit-shadow) !important;
+        }
+
+        #menu-backup-admin button {
+            min-height: 2.75rem;
+            background: transparent !important;
+            color: var(--orbit-muted) !important;
+            border-color: var(--orbit-line) !important;
+            box-shadow: none !important;
+        }
+
+        #menu-backup-admin button:hover {
+            color: var(--orbit-text) !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        /* Contenido editorial y selector de mes. */
+        main.calendar-main {
+            position: relative;
+            width: 100%;
+            max-width: 92rem !important;
+            padding: clamp(1.2rem, 3vw, 2.5rem) clamp(1rem, 3vw, 2.2rem) 3.5rem !important;
+        }
+
+        #meses-container.month-navigation {
+            position: relative;
+            display: flex;
+            gap: 0.35rem !important;
+            padding: 0.42rem !important;
+            margin-bottom: 1.1rem !important;
+            border-radius: 1.15rem;
+            background: rgba(3, 15, 31, 0.62);
+            border: 1px solid var(--orbit-line);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+            scroll-snap-type: x proximity;
+            scroll-padding-inline: 0.5rem;
+            overscroll-behavior-inline: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .month-chip {
+            min-height: 2.65rem;
+            padding: 0.63rem 1.1rem !important;
+            color: var(--orbit-faint) !important;
+            background: transparent !important;
+            border: 1px solid transparent !important;
+            border-radius: 0.85rem !important;
+            box-shadow: none !important;
+            scroll-snap-align: center;
+            transition: color 180ms ease, background 180ms ease, border-color 180ms ease, transform 180ms ease;
+        }
+
+        .month-chip:hover {
+            color: var(--orbit-text) !important;
+            background: rgba(255, 255, 255, 0.045) !important;
+            border-color: var(--orbit-line) !important;
+        }
+
+        .month-chip-active {
+            color: #071326 !important;
+            background: linear-gradient(135deg, #fff3c2 0%, #e4c66f 68%, #cc9f48 100%) !important;
+            border-color: rgba(255, 240, 181, 0.72) !important;
+            box-shadow: 0 8px 22px rgba(228, 198, 111, 0.17), inset 0 1px 0 rgba(255, 255, 255, 0.46) !important;
+        }
+
+        .month-hero {
+            position: relative;
+            isolation: isolate;
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center !important;
+            gap: 1.5rem;
+            min-height: 12rem;
+            margin-bottom: 1rem !important;
+            padding: clamp(1.45rem, 3vw, 2.25rem);
+            overflow: hidden;
+            border: 1px solid var(--orbit-line);
+            border-radius: 1.65rem;
+            background:
+                radial-gradient(circle at 82% 34%, rgba(116, 185, 255, 0.13), transparent 16rem),
+                radial-gradient(circle at 4% 110%, rgba(228, 198, 111, 0.13), transparent 18rem),
+                linear-gradient(135deg, rgba(11, 33, 62, 0.9), rgba(5, 18, 36, 0.78));
+            box-shadow: 0 20px 46px rgba(0, 0, 0, 0.2);
+        }
+
+        .month-hero::after {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            width: 20rem;
+            height: 20rem;
+            right: -8rem;
+            top: -11rem;
+            border: 1px solid rgba(116, 185, 255, 0.13);
+            border-radius: 50%;
+            box-shadow: 0 0 0 3.5rem rgba(116, 185, 255, 0.025), 0 0 0 7rem rgba(228, 198, 111, 0.018);
+        }
+
+        .month-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            margin: 0 0 0.75rem;
+            color: var(--orbit-gold);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+        }
+
+        .month-eyebrow span {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 999px;
+            background: var(--orbit-gold);
+            box-shadow: 0 0 0 0.3rem rgba(228, 198, 111, 0.09), 0 0 1.25rem rgba(228, 198, 111, 0.44);
+        }
+
+        #titulo-mes-actual {
+            margin: 0;
+            color: var(--orbit-text) !important;
+            font-size: clamp(3.2rem, 7vw, 5.8rem) !important;
+            font-weight: 700 !important;
+            line-height: 0.9 !important;
+            letter-spacing: -0.055em;
+            text-shadow: none;
+        }
+
+        #titulo-mes-actual + p {
+            max-width: 42rem;
+            margin-top: 0.85rem !important;
+            color: var(--orbit-muted) !important;
+            font-size: 0.96rem !important;
+            line-height: 1.55;
+        }
+
+        .month-orbit-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-width: 12.5rem;
+            padding: 0.8rem 1rem 0.8rem 0.8rem;
+            border: 1px solid var(--orbit-line-strong);
+            border-radius: 1.35rem;
+            background: rgba(3, 15, 31, 0.54);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+        }
+
+        .month-orbit {
+            position: relative;
+            display: grid;
+            width: 4.6rem;
+            height: 4.6rem;
+            flex: 0 0 auto;
+            place-items: center;
+            border: 1px solid rgba(228, 198, 111, 0.38);
+            border-radius: 50%;
+            box-shadow: inset 0 0 0 0.7rem rgba(228, 198, 111, 0.025);
+        }
+
+        .month-orbit::before {
+            content: "";
+            position: absolute;
+            inset: 0.45rem;
+            border: 1px dashed rgba(116, 185, 255, 0.24);
+            border-radius: 50%;
+        }
+
+        .month-orbit strong {
+            color: var(--orbit-text);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.35rem;
+            letter-spacing: -0.04em;
+        }
+
+        .month-orbit-dot {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 0.45rem;
+            height: 0.45rem;
+            margin: -0.225rem;
+            border-radius: 50%;
+            background: var(--orbit-blue);
+            box-shadow: 0 0 1rem rgba(116, 185, 255, 0.72);
+            animation: calmOrbit 9s linear infinite;
+        }
+
+        .month-orbit-year {
+            display: flex;
+            flex-direction: column;
+            gap: 0.12rem;
+        }
+
+        .month-orbit-year span {
+            color: var(--orbit-faint);
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .month-orbit-year strong {
+            color: var(--orbit-gold-soft);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.25rem;
+        }
+
+        @keyframes calmOrbit {
+            to { transform: rotate(360deg) translateX(2.3rem); }
+            from { transform: rotate(0deg) translateX(2.3rem); }
+        }
+
+        /* Resumen: una banda compacta y respirable. */
+        .month-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            gap: 0.8rem !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .kpi-card {
+            position: relative;
+            min-width: 0;
+            min-height: 7rem;
+            padding: 1rem !important;
+            overflow: hidden;
+            border: 1px solid var(--orbit-line) !important;
+            border-radius: 1.2rem !important;
+            background: rgba(9, 29, 55, 0.72) !important;
+            box-shadow: none !important;
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+        }
+
+        .kpi-card[data-tone="gold"] {
+            background: linear-gradient(145deg, rgba(44, 39, 28, 0.72), rgba(9, 29, 55, 0.72)) !important;
+            border-color: rgba(228, 198, 111, 0.2) !important;
+        }
+
+        .kpi-card::after {
+            content: "";
+            position: absolute;
+            left: 1rem;
+            right: 1rem;
+            bottom: 0;
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--orbit-blue), transparent 78%);
+            opacity: 0.5;
+        }
+
+        .kpi-card[data-tone="gold"]::after {
+            background: linear-gradient(90deg, var(--orbit-gold), transparent 78%);
+        }
+
+        .kpi-card .relative {
+            display: flex;
+            align-items: center !important;
+            gap: 0.8rem !important;
+        }
+
+        .kpi-icon,
+        .kpi-icon.gold {
+            width: 3rem !important;
+            height: 3rem !important;
+            flex: 0 0 auto;
+            border-radius: 1rem !important;
+            background: rgba(116, 185, 255, 0.11) !important;
+            color: #b9dcff !important;
+            border: 1px solid rgba(116, 185, 255, 0.25) !important;
+            box-shadow: none !important;
+        }
+
+        .kpi-icon.gold {
+            background: rgba(228, 198, 111, 0.11) !important;
+            color: var(--orbit-gold-soft) !important;
+            border-color: rgba(228, 198, 111, 0.27) !important;
+        }
+
+        .kpi-card .text-sm {
+            color: var(--orbit-muted) !important;
+            font-size: 0.76rem !important;
+            font-weight: 700 !important;
+        }
+
+        .kpi-value {
+            margin-block: 0.12rem;
+            color: var(--orbit-text) !important;
+            font-size: 1.85rem !important;
+            line-height: 1 !important;
+            text-shadow: none;
+        }
+
+        .kpi-card .text-\[11px\] {
+            color: var(--orbit-faint) !important;
+            font-size: 0.68rem !important;
+            line-height: 1.3;
+        }
+
+        /* Próximos encuentros. */
+        #recordatorios-banner {
+            margin-bottom: 1rem !important;
+            padding: 1rem 1.15rem;
+            border: 1px solid rgba(228, 198, 111, 0.22);
+            border-radius: 1.25rem;
+            background: linear-gradient(135deg, rgba(35, 34, 30, 0.62), rgba(8, 27, 52, 0.78));
+            box-shadow: none;
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+        }
+
+        #recordatorios-banner .rec-title {
+            color: var(--orbit-gold-soft);
+            font-size: 0.98rem;
+        }
+
+        #recordatorios-banner .rec-btn {
+            min-height: 2.75rem;
+            padding-inline: 1rem;
+            background: rgba(228, 198, 111, 0.12);
+            color: var(--orbit-gold-soft);
+            border: 1px solid rgba(228, 198, 111, 0.32);
+            box-shadow: none;
+        }
+
+        #recordatorios-banner .rec-act,
+        #recordatorios-banner .rec-date-num {
+            color: var(--orbit-text);
+        }
+
+        #recordatorios-banner .rec-mentor,
+        #recordatorios-banner .rec-help {
+            color: var(--orbit-muted);
+        }
+
+        /* Tarjetas: fecha como riel, contenido más limpio y alto menor. */
+        #grid-web {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 0.9rem !important;
+        }
+
+        .calendar-card {
+            --event-accent: var(--orbit-blue);
+            position: relative;
+            min-width: 0;
+            min-height: 13.5rem;
+            padding: 1.05rem !important;
+            overflow: hidden;
+            color: var(--orbit-text) !important;
+            background: rgba(8, 27, 52, 0.78) !important;
+            border: 1px solid var(--orbit-line) !important;
+            border-radius: 1.25rem !important;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16) !important;
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+            transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+        }
+
+        .event-card-presencial { --event-accent: var(--orbit-gold); }
+        .event-card-festivo { --event-accent: var(--orbit-danger); }
+
+        .calendar-card::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 1rem;
+            bottom: 1rem;
+            width: 3px;
+            border-radius: 0 999px 999px 0;
+            background: var(--event-accent);
+            box-shadow: 0 0 1.1rem color-mix(in srgb, var(--event-accent) 34%, transparent);
+        }
+
+        .calendar-card::after {
+            content: "";
+            position: absolute;
+            width: 9rem;
+            height: 9rem;
+            left: auto;
+            right: -5rem;
+            top: -5rem;
+            bottom: auto;
+            border-radius: 50%;
+            background: radial-gradient(circle, color-mix(in srgb, var(--event-accent) 10%, transparent), transparent 68%);
+            opacity: 1;
+        }
+
+        .calendar-card:hover {
+            transform: translateY(-2px) !important;
+            border-color: color-mix(in srgb, var(--event-accent) 34%, var(--orbit-line)) !important;
+            background: rgba(10, 32, 61, 0.88) !important;
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22) !important;
+        }
+
+        .event-card-top {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 4.25rem minmax(0, 1fr);
+            gap: 0.9rem;
+            margin-bottom: 0.85rem !important;
+        }
+
+        .calendar-datebox {
+            min-width: 0 !important;
+            width: 4.25rem;
+            min-height: 5.35rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.55rem 0.4rem !important;
+            border: 1px solid color-mix(in srgb, var(--event-accent) 52%, transparent) !important;
+            border-radius: 1rem !important;
+            background: rgba(3, 15, 31, 0.66) !important;
+            box-shadow: none !important;
+        }
+
+        .calendar-datebox .text-xl {
+            color: var(--orbit-text) !important;
+            font-size: 1.72rem !important;
+        }
+
+        .calendar-datebox .text-xs,
+        .calendar-datebox .text-\[10px\] {
+            color: color-mix(in srgb, var(--event-accent) 76%, var(--orbit-text)) !important;
+        }
+
+        .event-card-content {
+            position: relative;
+            z-index: 1;
+            padding-top: 0;
+        }
+
+        .calendar-card h4 {
+            color: var(--orbit-text) !important;
+            font-size: 1rem !important;
+            line-height: 1.35 !important;
+            letter-spacing: -0.01em;
+        }
+
+        .week-badge {
+            padding: 0.22rem 0.45rem;
+            color: var(--orbit-faint) !important;
+            border: 1px solid var(--orbit-line);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.025);
+        }
+
+        .institutional-badge {
+            min-height: 1.85rem;
+            padding: 0.3rem 0.6rem !important;
+            border-radius: 999px !important;
+            box-shadow: none;
+        }
+
+        .event-assignee,
+        .event-review,
+        .event-unavailable,
+        .event-admin-control {
+            position: relative;
+            z-index: 1;
+            min-height: 2.75rem;
+            border-color: var(--orbit-line) !important;
+        }
+
+        .event-assignee {
+            color: var(--orbit-text) !important;
+        }
+
+        .event-assignee i {
+            color: var(--orbit-green) !important;
+        }
+
+        .event-review {
+            color: var(--orbit-gold-soft) !important;
+        }
+
+        .event-unavailable {
+            color: var(--orbit-danger) !important;
+        }
+
+        .event-reserve {
+            position: relative;
+            z-index: 1;
+            min-height: 2.8rem;
+            border-radius: 0.85rem !important;
+            color: var(--orbit-gold-soft) !important;
+            background: rgba(228, 198, 111, 0.09) !important;
+            border: 1px solid rgba(228, 198, 111, 0.34) !important;
+            box-shadow: none !important;
+        }
+
+        .event-reserve:hover {
+            color: #071326 !important;
+            background: var(--orbit-gold) !important;
+        }
+
+        .mentor-select {
+            min-height: 2.9rem;
+            border-radius: 0.85rem !important;
+            color: var(--orbit-text) !important;
+            background: rgba(3, 15, 31, 0.68) !important;
+            border-color: var(--orbit-line) !important;
+            box-shadow: none !important;
+        }
+
+        .event-edit-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            opacity: 1 !important;
+            color: var(--orbit-muted) !important;
+            background: rgba(3, 15, 31, 0.74) !important;
+            border: 1px solid var(--orbit-line) !important;
+        }
+
+        /* Modales coherentes y campos cómodos. */
+        .modal-panel {
+            border-radius: 1.5rem !important;
+            background: linear-gradient(150deg, #0c2340, #061426) !important;
+            border-color: var(--orbit-line-strong) !important;
+        }
+
+        .modal-heading {
+            background: rgba(4, 16, 33, 0.72) !important;
+            border-bottom-color: var(--orbit-line) !important;
+        }
+
+        .modal-panel input,
+        .modal-panel select,
+        .modal-panel textarea {
+            min-height: 2.9rem;
+            border-radius: 0.85rem !important;
+        }
+
+        #ios-install-help > div {
+            color: var(--orbit-text);
+            background: linear-gradient(150deg, #0c2340, #061426) !important;
+            border: 1px solid var(--orbit-line-strong);
+        }
+
+        #ios-install-help h3,
+        #ios-install-help strong {
+            color: var(--orbit-text) !important;
+        }
+
+        #ios-install-help ol {
+            color: var(--orbit-muted) !important;
+        }
+
+        @media (max-width: 1180px) {
+            .app-header-inner {
+                gap: 0.8rem !important;
+            }
+
+            .header-actions {
+                overflow-x: auto;
+                scrollbar-width: none;
+                overscroll-behavior-inline: contain;
+            }
+
+            .header-actions::-webkit-scrollbar {
+                display: none;
+            }
+
+            #grid-web {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+        }
+
+        @media (max-width: 719px) {
+            html {
+                scroll-padding-top: 7.25rem;
+            }
+
+            body {
+                background:
+                    radial-gradient(circle at 6% 0%, rgba(228, 198, 111, 0.1), transparent 17rem),
+                    linear-gradient(160deg, #03101f 0%, #07172d 58%, #041021 100%) !important;
+            }
+
+            header.app-header {
+                padding: 0 !important;
+                -webkit-backdrop-filter: none;
+                backdrop-filter: none;
+            }
+
+            .app-header-inner {
+                display: block !important;
+                min-height: 0;
+                padding: calc(env(safe-area-inset-top) + 0.55rem) 0.75rem 0.55rem !important;
+            }
+
+            .header-logo {
+                gap: 0.65rem !important;
+            }
+
+            .brand-logo-header {
+                width: 2.7rem !important;
+                height: 2.7rem !important;
+                box-shadow: 0 0 0 4px rgba(228, 198, 111, 0.05), 0 8px 20px rgba(0, 0, 0, 0.24) !important;
+            }
+
+            .header-logo h1 {
+                font-size: 1.02rem !important;
+            }
+
+            .header-logo p {
+                font-size: 0.65rem !important;
+                line-height: 1.2;
+            }
+
+            .header-actions {
+                width: 100%;
+                margin: 0.55rem 0 0;
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.38rem !important;
+                overflow: visible;
+            }
+
+            .header-actions > .h-8,
+            #toast-msg.hidden {
+                display: none !important;
+            }
+
+            #toast-msg:not(.hidden) {
+                position: fixed;
+                left: 50%;
+                top: calc(env(safe-area-inset-top) + 0.75rem);
+                z-index: 110;
+                display: flex !important;
+                width: max-content;
+                max-width: calc(100vw - 1.5rem);
+                margin: 0 !important;
+                transform: translateX(-50%);
+                box-shadow: 0 16px 34px rgba(0, 0, 0, 0.36) !important;
+            }
+
+            .header-actions > button:not(.hidden),
+            #btn-backup-admin > button {
+                width: 100%;
+                min-width: 0;
+                min-height: 2.75rem;
+                padding: 0.52rem !important;
+                border-radius: 0.75rem !important;
+            }
+
+            .mobile-more-tools {
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                gap: 0.45rem;
+                color: var(--orbit-muted) !important;
+                background: rgba(13, 35, 65, 0.72) !important;
+                border: 1px solid var(--orbit-line) !important;
+            }
+
+            .mobile-tools {
+                position: fixed;
+                left: 0.65rem;
+                right: 0.65rem;
+                bottom: calc(env(safe-area-inset-bottom) + 0.65rem);
+                z-index: 80;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.55rem;
+                max-height: min(82dvh, 34rem);
+                padding: 0.8rem;
+                overflow-y: auto;
+                visibility: hidden;
+                opacity: 0;
+                pointer-events: none;
+                transform: translateY(calc(100% + 1rem));
+                border: 1px solid var(--orbit-line-strong);
+                border-radius: 1.35rem;
+                background: linear-gradient(150deg, #0c2340, #061426);
+                box-shadow: 0 28px 70px rgba(0, 0, 0, 0.5);
+                transition: transform 220ms ease, opacity 180ms ease, visibility 180ms ease;
+            }
+
+            .mobile-tools.is-open {
+                visibility: visible;
+                opacity: 1;
+                pointer-events: auto;
+                transform: translateY(0);
+            }
+
+            .mobile-tools-heading {
+                grid-column: 1 / -1;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+                padding: 0.3rem 0.2rem 0.65rem;
+                border-bottom: 1px solid var(--orbit-line);
+            }
+
+            .mobile-tools-heading > div {
+                display: flex;
+                flex-direction: column;
+                min-width: 0;
+            }
+
+            .mobile-tools-heading strong {
+                color: var(--orbit-text);
+                font-size: 1rem;
+            }
+
+            .mobile-tools-heading span {
+                color: var(--orbit-faint);
+                font-size: 0.72rem;
+            }
+
+            .mobile-tools-heading button {
+                display: inline-flex;
+                width: 2.75rem;
+                height: 2.75rem;
+                flex: 0 0 auto;
+                align-items: center;
+                justify-content: center;
+                border-radius: 0.8rem;
+                color: var(--orbit-muted);
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid var(--orbit-line);
+            }
+
+            .mobile-tools > button:not(.hidden),
+            .mobile-tools > #btn-backup-admin:not(.hidden) {
+                display: flex;
+                width: 100%;
+                min-width: 0;
+                min-height: 3.2rem;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                padding: 0.7rem !important;
+                border-radius: 0.9rem !important;
+                color: var(--orbit-muted) !important;
+                background: rgba(13, 35, 65, 0.72) !important;
+                border: 1px solid var(--orbit-line) !important;
+                box-shadow: none !important;
+            }
+
+            .mobile-tools > #btn-backup-admin:not(.hidden) > button {
+                width: 100%;
+                min-height: 3.2rem;
+            }
+
+            .mobile-tools > #btn-backup-admin:not(.hidden) {
+                display: contents !important;
+            }
+
+            .mobile-tools > #btn-backup-admin:not(.hidden) > #btn-backup-menu {
+                display: none !important;
+            }
+
+            .mobile-tools > #btn-backup-admin:not(.hidden) > #menu-backup-admin,
+            .mobile-tools > #btn-backup-admin:not(.hidden) > #menu-backup-admin > div {
+                position: static !important;
+                display: contents !important;
+                width: auto !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+
+            .mobile-tools #menu-backup-admin button {
+                display: flex;
+                width: 100%;
+                min-height: 3.2rem;
+                align-items: center;
+                justify-content: center;
+                padding: 0.65rem !important;
+                border: 1px solid var(--orbit-line) !important;
+                border-radius: 0.9rem !important;
+                background: rgba(13, 35, 65, 0.72) !important;
+                color: var(--orbit-muted) !important;
+            }
+
+            .mobile-tools #menu-backup-admin button .text-\[10px\] {
+                display: none;
+            }
+
+            .mobile-tools .hidden.sm\:inline {
+                display: inline !important;
+            }
+
+            .mobile-tools .mobile-tool-label {
+                display: inline;
+            }
+
+            #mobile-tools-backdrop {
+                position: fixed;
+                inset: 0;
+                z-index: 75;
+                width: 100%;
+                height: 100%;
+                visibility: hidden;
+                opacity: 0;
+                pointer-events: none;
+                background: rgba(1, 8, 18, 0.7);
+                border: 0;
+                -webkit-backdrop-filter: blur(5px);
+                backdrop-filter: blur(5px);
+                transition: opacity 180ms ease, visibility 180ms ease;
+            }
+
+            #mobile-tools-backdrop.is-open {
+                display: block;
+                visibility: visible;
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            body.mobile-tools-open {
+                overflow: hidden;
+            }
+
+            body.mobile-tools-open header.app-header {
+                z-index: 90;
+            }
+
+            #btn-backup-admin {
+                min-width: 0;
+            }
+
+            #menu-backup-admin {
+                position: fixed !important;
+                left: 0.75rem !important;
+                right: 0.75rem !important;
+                top: auto !important;
+                bottom: calc(env(safe-area-inset-bottom) + 0.75rem) !important;
+                width: auto !important;
+                padding-top: 0 !important;
+                z-index: 70 !important;
+            }
+
+            #menu-backup-admin > div {
+                max-height: min(70dvh, 28rem);
+                overflow-y: auto;
+                border-radius: 1.15rem !important;
+            }
+
+            main.calendar-main {
+                max-width: 100% !important;
+                padding: 0.85rem 0.75rem calc(env(safe-area-inset-bottom) + 1.5rem) !important;
+            }
+
+            #meses-container.month-navigation {
+                margin-inline: -0.1rem;
+                margin-bottom: 0.75rem !important;
+                padding: 0.32rem !important;
+                border-radius: 0.95rem;
+                mask-image: linear-gradient(90deg, transparent 0, #000 1rem, #000 calc(100% - 1rem), transparent 100%);
+            }
+
+            .month-chip {
+                min-height: 2.75rem;
+                padding: 0.62rem 1rem !important;
+                font-size: 0.79rem !important;
+            }
+
+            .month-hero {
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 0.75rem;
+                min-height: 0;
+                padding: 1.15rem;
+                border-radius: 1.25rem;
+            }
+
+            .month-eyebrow {
+                margin-bottom: 0.55rem;
+                font-size: 0.62rem;
+            }
+
+            #titulo-mes-actual {
+                font-size: clamp(2.6rem, 15vw, 3.35rem) !important;
+            }
+
+            #titulo-mes-actual + p {
+                margin-top: 0.55rem !important;
+                font-size: 0.75rem !important;
+                line-height: 1.4;
+            }
+
+            .month-orbit-card {
+                min-width: 0;
+                flex-direction: column;
+                gap: 0.3rem;
+                padding: 0.55rem;
+                border-radius: 1rem;
+            }
+
+            .month-orbit {
+                width: 3.35rem;
+                height: 3.35rem;
+            }
+
+            .month-orbit strong {
+                font-size: 1rem;
+            }
+
+            .month-orbit-dot {
+                width: 0.36rem;
+                height: 0.36rem;
+                margin: -0.18rem;
+            }
+
+            @keyframes calmOrbit {
+                to { transform: rotate(360deg) translateX(1.675rem); }
+                from { transform: rotate(0deg) translateX(1.675rem); }
+            }
+
+            .month-orbit-year {
+                align-items: center;
+            }
+
+            .month-orbit-year span {
+                display: none;
+            }
+
+            .month-orbit-year strong {
+                font-size: 0.72rem;
+            }
+
+            .month-summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 0.55rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+
+            .kpi-card {
+                min-height: 5.8rem;
+                padding: 0.75rem !important;
+                border-radius: 1rem !important;
+            }
+
+            .kpi-card .relative {
+                flex-direction: row !important;
+                align-items: center !important;
+                gap: 0.6rem !important;
+            }
+
+            .kpi-icon,
+            .kpi-icon.gold {
+                width: 2.35rem !important;
+                height: 2.35rem !important;
+                border-radius: 0.75rem !important;
+            }
+
+            .kpi-value {
+                font-size: 1.4rem !important;
+            }
+
+            .kpi-card .text-sm {
+                font-size: 0.7rem !important;
+            }
+
+            .kpi-card .text-\[11px\] {
+                font-size: 0.61rem !important;
+            }
+
+            #recordatorios-banner {
+                padding: 0.85rem;
+                margin-bottom: 0.75rem !important;
+                border-radius: 1rem;
+            }
+
+            #recordatorios-banner .rec-btn {
+                width: 100%;
+            }
+
+            #recordatorios-banner .rec-item {
+                align-items: flex-start;
+            }
+
+            #recordatorios-banner .rec-help {
+                font-size: 0.68rem;
+            }
+
+            #grid-web {
+                grid-template-columns: minmax(0, 1fr) !important;
+                gap: 0.65rem !important;
+            }
+
+            .calendar-card {
+                min-height: 0;
+                padding: 0.9rem !important;
+                border-radius: 1.05rem !important;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14) !important;
+            }
+
+            .calendar-card:hover {
+                transform: none !important;
+            }
+
+            .event-card-top {
+                grid-template-columns: 3.75rem minmax(0, 1fr);
+                gap: 0.72rem;
+                margin-bottom: 0.65rem !important;
+            }
+
+            .calendar-datebox {
+                width: 3.75rem;
+                min-height: 4.65rem;
+                padding: 0.45rem 0.3rem !important;
+                border-radius: 0.85rem !important;
+            }
+
+            .calendar-datebox .text-xl {
+                font-size: 1.5rem !important;
+            }
+
+            .calendar-card h4 {
+                padding-right: 2.8rem !important;
+                font-size: 0.94rem !important;
+            }
+
+            .week-badge {
+                display: none;
+            }
+
+            .event-edit-btn {
+                width: 2.75rem;
+                height: 2.75rem;
+            }
+
+            .mentor-select,
+            .event-reserve,
+            .event-assignee,
+            .event-review,
+            .event-unavailable {
+                min-height: 2.75rem;
+            }
+
+            .modal-panel input,
+            .modal-panel select,
+            .modal-panel textarea {
+                min-height: 3rem;
+                font-size: 1rem !important;
+            }
+
+            [id^="modal-"] {
+                align-items: flex-end !important;
+                padding: 0 !important;
+                overscroll-behavior: contain;
+            }
+
+            [id^="modal-"] > .modal-panel {
+                width: 100% !important;
+                max-width: 100% !important;
+                max-height: min(90dvh, 48rem) !important;
+                border-radius: 1.35rem 1.35rem 0 0 !important;
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+
+        @media (max-width: 359px) {
+            .brand-copy p {
+                display: none;
+            }
+
+            #btn-image-mobile span {
+                display: none;
+            }
+
+            .month-summary-grid {
+                grid-template-columns: minmax(0, 1fr) !important;
+            }
+
+            .kpi-card {
+                min-height: 4.8rem;
+            }
+
+            .month-orbit-card {
+                display: none;
+            }
+        }
+
+        @media (hover: none) {
+            .calendar-card:hover,
+            .header-actions > button:not(.hidden):hover {
+                transform: none !important;
+            }
+
+            .event-edit-btn {
+                opacity: 1 !important;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .month-orbit-dot {
+                transform: translateX(2.3rem);
+            }
+        }
+
         /* --- ESTILOS DE IMPRESIÓN PDF --- */
         @media print {
             @page {
@@ -1944,75 +3259,28 @@
     </div>
 
     <!-- UI WEB (HEADER) -->
-    <header class="bg-white/92 backdrop-blur border-b border-[#e5dcc2] sticky top-0 z-40 no-print shadow-sm">
-        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
+    <header class="app-header bg-white/92 backdrop-blur border-b border-[#e5dcc2] sticky top-0 z-40 no-print shadow-sm">
+        <div class="app-header-inner max-w-6xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="header-logo flex items-center gap-3">
                 <div
                     class="brand-logo-mark brand-logo-header rounded-xl flex items-center justify-center overflow-hidden">
                     <img src="assets/mentes-brillantes-logo.jpeg" alt="Gimnasio Emocional Mentes Brillantes" class="brand-logo-img">
                 </div>
-                <div>
+                <div class="brand-copy">
                     <h1 class="text-lg font-bold text-[#102a56] brand-font leading-tight">Mentes Brillantes</h1>
                     <p class="text-xs text-slate-500 font-semibold tracking-wide">Gestor de Programación</p>
                 </div>
             </div>
 
-            <div class="header-actions flex items-center gap-2">
-                <div id="toast-msg"
+            <nav class="header-actions flex items-center gap-2" aria-label="Herramientas rápidas">
+                <div id="toast-msg" role="status" aria-live="polite"
                     class="hidden px-4 py-2 bg-green-100 text-green-700 text-xs font-bold rounded-full animate-fade-in items-center gap-2">
                     <i class="fas fa-check"></i> <span id="toast-text">Guardado</span>
                 </div>
 
                 <div class="h-8 w-px bg-slate-200 mx-2 hidden md:block"></div>
 
-                <button onclick="abrirModalConfigBase()" id="btn-config-admin" aria-label="Abrir configuraciÃ³n base"
-                    class="hidden p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-                    title="Configuración Base de Días">
-                    <i class="fas fa-cog text-lg"></i>
-                </button>
-
-                <button onclick="toggleModal(true)" id="btn-team-admin" aria-label="Gestionar mentores"
-                    class="hidden p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="Gestionar Mentores">
-                    <i class="fas fa-users-cog text-lg"></i>
-                </button>
-
-                <!-- BOTON ADMIN SOLICITUDES -->
-                <button onclick="abrirModalSolicitudes()" id="btn-solicitudes-admin" aria-label="Ver solicitudes pendientes"
-                    class="hidden relative p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                    title="Ver Solicitudes Pendientes">
-                    <i class="fas fa-inbox text-lg"></i>
-                    <span id="badge-solicitudes" class="absolute -top-1 -right-1 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden shadow-sm border border-white">0</span>
-                </button>
-
-                <!-- Menú Desplegable BACKUP -->
-                <div class="relative group z-30 hidden" id="btn-backup-admin">
-                    <button type="button" id="btn-backup-menu" aria-expanded="false" aria-controls="menu-backup-admin"
-                        class="btn-light-institutional px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all">
-                        <i class="fas fa-database"></i> <span class="hidden sm:inline">Datos</span> <i
-                            class="fas fa-chevron-down text-xs ml-1 opacity-70"></i>
-                    </button>
-                    <div id="menu-backup-admin" class="absolute right-0 top-full pt-2 w-48 hidden group-hover:block animate-fade-in">
-                        <div class="bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
-                            <button onclick="descargarBackup('pendientes')"
-                                class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 text-slate-700 border-b border-slate-50 flex flex-col gap-0.5 hover:text-blue-600 transition-colors">
-                                <div class="flex items-center gap-2 font-bold"><i class="fas fa-download text-blue-500"></i> Copia (Solo Pendientes)</div>
-                                <div class="text-[10px] text-slate-400 pl-6">Sincronización rápida y ligera</div>
-                            </button>
-                            <button onclick="descargarBackup('completo')"
-                                class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 text-slate-700 border-b border-slate-50 flex flex-col gap-0.5 hover:text-indigo-600 transition-colors">
-                                <div class="flex items-center gap-2 font-bold"><i class="fas fa-archive text-indigo-500"></i> Copia (Todo el Historial)</div>
-                                <div class="text-[10px] text-slate-400 pl-6">Incluye solicitudes atendidas/rechazadas</div>
-                            </button>
-                            <button onclick="triggerCargarBackup()"
-                                class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 text-slate-700 flex items-center gap-2 hover:text-orange-600 transition-colors">
-                                <i class="fas fa-upload text-orange-500"></i> Restaurar Copia
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Botón IMAGEN -->
+                <!-- Acción principal: siempre accesible, incluso en celular. -->
                 <button type="button" id="btn-image-desktop" onclick="descargarImagen('asignados')" aria-label="Descargar imagen de asignados"
                     class="hidden sm:flex btn-institutional px-4 py-2 rounded-lg text-sm font-semibold items-center gap-2 transition-all cursor-pointer">
                     <i class="fas fa-image"></i> <span class="hidden sm:inline">Imagen</span>
@@ -2024,11 +3292,76 @@
                     <i class="fas fa-image"></i> <span>Imagen</span>
                 </button>
 
+                <button type="button" id="btn-more-tools" onclick="toggleMobileTools()" aria-expanded="false" aria-controls="mobile-tools"
+                    class="mobile-more-tools sm:hidden" aria-label="Abrir más herramientas">
+                    <i class="fas fa-ellipsis-h" aria-hidden="true"></i>
+                    <span>Más</span>
+                </button>
+
+                <div id="mobile-tools" class="mobile-tools" aria-label="Más herramientas">
+                    <div class="mobile-tools-heading">
+                        <div>
+                            <strong>Herramientas</strong>
+                            <span>Comparte, instala y administra</span>
+                        </div>
+                        <button type="button" onclick="toggleMobileTools(false)" aria-label="Cerrar herramientas"><i class="fas fa-times" aria-hidden="true"></i></button>
+                    </div>
+
+                <button onclick="abrirModalConfigBase()" id="btn-config-admin" aria-label="Abrir configuraciÃ³n base"
+                    class="hidden p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                    title="Configuración Base de Días">
+                    <i class="fas fa-cog text-lg"></i>
+                    <span class="mobile-tool-label">Configuración</span>
+                </button>
+
+                <button onclick="toggleModal(true)" id="btn-team-admin" aria-label="Gestionar mentores"
+                    class="hidden p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Gestionar Mentores">
+                    <i class="fas fa-users-cog text-lg"></i>
+                    <span class="mobile-tool-label">Equipo</span>
+                </button>
+
+                <!-- BOTON ADMIN SOLICITUDES -->
+                <button onclick="abrirModalSolicitudes()" id="btn-solicitudes-admin" aria-label="Ver solicitudes pendientes"
+                    class="hidden relative p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                    title="Ver Solicitudes Pendientes">
+                    <i class="fas fa-inbox text-lg"></i>
+                    <span class="mobile-tool-label">Solicitudes</span>
+                    <span id="badge-solicitudes" class="absolute -top-1 -right-1 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden shadow-sm border border-white">0</span>
+                </button>
+
+                <!-- Menú Desplegable BACKUP -->
+                <div class="relative group z-30 hidden" id="btn-backup-admin">
+                    <button type="button" id="btn-backup-menu" aria-expanded="false" aria-controls="menu-backup-admin" aria-label="Gestionar copias de seguridad"
+                        class="btn-light-institutional px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all">
+                        <i class="fas fa-database"></i> <span class="hidden sm:inline">Datos</span> <i
+                            class="fas fa-chevron-down text-xs ml-1 opacity-70"></i>
+                    </button>
+                    <div id="menu-backup-admin" class="absolute right-0 top-full pt-2 w-48 hidden group-hover:block animate-fade-in">
+                        <div class="bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
+                            <button onclick="descargarBackup('pendientes')"
+                                class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 text-slate-700 border-b border-slate-50 flex flex-col gap-0.5 hover:text-blue-600 transition-colors">
+                                <div class="flex items-center gap-2 font-bold"><i class="fas fa-download text-blue-500"></i> Copia rápida</div>
+                                <div class="text-[10px] text-slate-400 pl-6">Sincronización rápida y ligera</div>
+                            </button>
+                            <button onclick="descargarBackup('completo')"
+                                class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 text-slate-700 border-b border-slate-50 flex flex-col gap-0.5 hover:text-indigo-600 transition-colors">
+                                <div class="flex items-center gap-2 font-bold"><i class="fas fa-archive text-indigo-500"></i> Copia completa</div>
+                                <div class="text-[10px] text-slate-400 pl-6">Incluye solicitudes atendidas/rechazadas</div>
+                            </button>
+                            <button onclick="triggerCargarBackup()"
+                                class="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 text-slate-700 flex items-center gap-2 hover:text-orange-600 transition-colors">
+                                <i class="fas fa-upload text-orange-500"></i> Restaurar Copia
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Botón PDF -->
                 <button onclick="window.print()" aria-label="Imprimir PDF"
                     class="btn-light-institutional px-3 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all"
                     title="Imprimir PDF Bonito">
-                    <i class="fas fa-print" aria-hidden="true"></i><span class="sr-only">Imprimir PDF</span>
+                    <i class="fas fa-print" aria-hidden="true"></i><span class="mobile-tool-label">PDF</span>
                 </button>
 
                 <!-- Botón INSTALAR APP (PWA) -->
@@ -2042,17 +3375,20 @@
                 <button onclick="copiarParaWhatsapp()" aria-label="Copiar texto para WhatsApp"
                     class="bg-[#1f9d67] hover:bg-[#188258] text-white px-3 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-all"
                     title="Copiar Texto WhatsApp">
-                    <i class="fab fa-whatsapp text-lg" aria-hidden="true"></i><span class="sr-only">Copiar texto para WhatsApp</span>
+                    <i class="fab fa-whatsapp text-lg" aria-hidden="true"></i><span class="mobile-tool-label">WhatsApp</span>
                 </button>
 
                 <!-- Botón Login Admin -->
-                <button onclick="toggleLogin()" id="btn-login-admin"
+                <button onclick="toggleLogin()" id="btn-login-admin" aria-label="Abrir acceso administrador"
                     class="btn-admin-subtle px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all">
                     <i class="fas fa-lock"></i> <span class="hidden sm:inline" id="txt-login-btn">Admin</span>
                 </button>
-            </div>
+                </div>
+            </nav>
         </div>
     </header>
+
+    <button type="button" id="mobile-tools-backdrop" onclick="toggleMobileTools(false)" aria-label="Cerrar herramientas"></button>
 
     <!-- MODAL INSTRUCCIONES INSTALAR EN iOS -->
     <div id="ios-install-help" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 no-print" role="dialog" aria-modal="true" aria-labelledby="ios-install-title" onclick="cerrarIosInstall(event)">
@@ -2071,18 +3407,27 @@
     </div>
 
     <!-- UI WEB (CONTENIDO) -->
-    <main class="max-w-6xl mx-auto p-4 md:p-8 no-print flex-grow">
+    <main class="calendar-main max-w-6xl mx-auto p-4 md:p-8 no-print flex-grow">
         <!-- Navegación Meses -->
-        <div class="flex overflow-x-auto pb-4 gap-2 mb-6 custom-scrollbar" id="meses-container"></div>
+        <div class="month-navigation flex overflow-x-auto pb-4 gap-2 mb-6 custom-scrollbar" id="meses-container" role="navigation" aria-label="Elegir mes"></div>
         <!-- Título Mes -->
-        <div class="flex justify-between items-end mb-6">
-            <div>
+        <section class="month-hero flex justify-between items-end mb-6" aria-labelledby="titulo-mes-actual">
+            <div class="month-hero-copy">
+                <p class="month-eyebrow"><span aria-hidden="true"></span> Tu programación</p>
                 <h2 class="text-3xl font-bold text-[#102a56] brand-font" id="titulo-mes-actual">Febrero</h2>
                 <p class="text-xs md:text-sm text-slate-500 font-semibold mt-1">Programaci&oacute;n mensual &middot; Gimnasio Emocional Mentes Brillantes</p>
             </div>
-            <span
-                class="text-sm font-semibold text-[#765714] bg-[#fffaf0] px-3 py-1 rounded-full border border-[#e5dcc2] shadow-sm">2026</span>
-        </div>
+            <div class="month-orbit-card" aria-label="Mes actual de 2026">
+                <div class="month-orbit" aria-hidden="true">
+                    <span class="month-orbit-dot"></span>
+                    <strong id="month-orbit-number">02</strong>
+                </div>
+                <div class="month-orbit-year">
+                    <span>A&ntilde;o</span>
+                    <strong>2026</strong>
+                </div>
+            </div>
+        </section>
         <section id="month-summary-kpis" class="month-summary-grid mb-7" aria-label="Resumen visual del mes"></section>
         <!-- Banner de recordatorios de fechas próximas -->
         <section id="recordatorios-banner" class="hidden mb-7 no-print" aria-label="Recordatorios de fechas próximas"></section>
@@ -2091,7 +3436,7 @@
     </main>
 
     <!-- ÁREA DE CAPTURA PARA IMAGEN (INVISIBLE) -->
-    <div id="capture-target">
+    <div id="capture-target" aria-hidden="true" inert>
         <div class="flyer-header">
             <div class="flyer-header-main">
                 <div class="flyer-brand-block">
@@ -2791,6 +4136,44 @@
             });
         }
 
+        function toggleMobileTools(forceOpen) {
+            const panel = document.getElementById('mobile-tools');
+            const backdrop = document.getElementById('mobile-tools-backdrop');
+            const trigger = document.getElementById('btn-more-tools');
+            if (!panel || !backdrop || !trigger) return;
+
+            const shouldOpen = typeof forceOpen === 'boolean'
+                ? forceOpen
+                : !panel.classList.contains('is-open');
+            const shouldRestoreFocus = document.activeElement === backdrop || document.activeElement?.closest('.mobile-tools-heading');
+
+            panel.classList.toggle('is-open', shouldOpen);
+            backdrop.classList.toggle('is-open', shouldOpen);
+            document.body.classList.toggle('mobile-tools-open', shouldOpen);
+            trigger.setAttribute('aria-expanded', String(shouldOpen));
+            trigger.setAttribute('aria-label', shouldOpen ? 'Cerrar más herramientas' : 'Abrir más herramientas');
+
+            if (shouldOpen) {
+                const closeButton = panel.querySelector('.mobile-tools-heading button');
+                if (closeButton) closeButton.focus({ preventScroll: true });
+            } else {
+                const backupMenu = document.getElementById('menu-backup-admin');
+                if (backupMenu) backupMenu.classList.add('hidden');
+                if (shouldRestoreFocus) window.setTimeout(() => trigger.focus({ preventScroll: true }), 0);
+            }
+        }
+
+        function setupMobileTools() {
+            const panel = document.getElementById('mobile-tools');
+            if (!panel || panel.dataset.bound === 'true') return;
+            panel.dataset.bound = 'true';
+            panel.addEventListener('click', (event) => {
+                const button = event.target.closest('button');
+                if (!button || button.id === 'btn-backup-menu' || button.closest('#menu-backup-admin') || button.closest('.mobile-tools-heading')) return;
+                window.setTimeout(() => toggleMobileTools(false), 0);
+            });
+        }
+
         function setupBackupMenu() {
             const backupButton = document.getElementById('btn-backup-menu');
             const backupMenu = document.getElementById('menu-backup-admin');
@@ -2833,6 +4216,14 @@
 
             document.addEventListener('keydown', (event) => {
                 if (event.key !== 'Escape') return;
+
+                const mobileTools = document.getElementById('mobile-tools');
+                if (mobileTools && mobileTools.classList.contains('is-open')) {
+                    event.preventDefault();
+                    toggleMobileTools(false);
+                    document.getElementById('btn-more-tools')?.focus({ preventScroll: true });
+                    return;
+                }
 
                 const closers = [
                     ['modal-apartar-exito', cerrarModalExito],
@@ -3017,6 +4408,7 @@
             const btnConfig = document.getElementById('btn-config-admin');
             const btnTeam = document.getElementById('btn-team-admin');
             const btnBgDatos = document.getElementById('btn-backup-admin');
+            const loginBtn = document.getElementById('btn-login-admin');
             const loginBtnTxt = document.getElementById('txt-login-btn');
             const loginBtnIcon = document.querySelector('#btn-login-admin i');
             const btnSolicitudes = document.getElementById('btn-solicitudes-admin');
@@ -3038,6 +4430,7 @@
                     }
                 }
                 if (loginBtnTxt) loginBtnTxt.innerText = "Salir";
+                if (loginBtn) loginBtn.setAttribute('aria-label', 'Cerrar sesión de administrador');
                 if (loginBtnIcon) { loginBtnIcon.classList.remove('fa-lock'); loginBtnIcon.classList.add('fa-sign-out-alt'); }
             } else {
                 if (btnConfig) btnConfig.classList.add('hidden');
@@ -3045,10 +4438,12 @@
                 if (btnBgDatos) btnBgDatos.classList.add('hidden');
                 if (btnSolicitudes) btnSolicitudes.classList.add('hidden');
                 if (loginBtnTxt) loginBtnTxt.innerText = "Admin";
+                if (loginBtn) loginBtn.setAttribute('aria-label', 'Abrir acceso administrador');
                 if (loginBtnIcon) { loginBtnIcon.classList.add('fa-lock'); loginBtnIcon.classList.remove('fa-sign-out-alt'); }
             }
         }
 
+        document.addEventListener('DOMContentLoaded', setupMobileTools);
         document.addEventListener('DOMContentLoaded', initData);
 
         function getISOWeek(d) {
@@ -3181,7 +4576,6 @@
 
         function renderMeses() {
             const container = document.getElementById('meses-container');
-            const scrollLeft = container.scrollLeft;
             container.innerHTML = '';
             MESES.forEach((mes, i) => {
                 if (i < 1) return; // Saltamos Enero
@@ -3189,6 +4583,8 @@
                 // Clase month-chip para ajustes móviles
                 btn.className = `month-chip whitespace-nowrap px-5 py-2 rounded-full text-sm font-bold transition-all ${i === mesSeleccionado ? 'month-chip-active' : 'bg-white/90 text-slate-600 hover:bg-[#fffaf0]'}`;
                 btn.innerText = mes;
+                btn.setAttribute('aria-label', `Ver programación de ${mes}`);
+                if (i === mesSeleccionado) btn.setAttribute('aria-current', 'date');
                 btn.onclick = () => {
                     mesSeleccionado = i;
                     renderTodo();
@@ -3196,7 +4592,13 @@
                 };
                 container.appendChild(btn);
             });
-            container.scrollLeft = scrollLeft;
+            // En pantallas angostas, el mes activo siempre queda visible y centrado.
+            requestAnimationFrame(() => {
+                const activeButton = container.querySelector('[aria-current="date"]');
+                if (!activeButton) return;
+                const centeredLeft = activeButton.offsetLeft - ((container.clientWidth - activeButton.offsetWidth) / 2);
+                container.scrollTo({ left: Math.max(0, centeredLeft), behavior: 'smooth' });
+            });
         }
 
         function calcularModoEvento(ev) {
@@ -3336,7 +4738,7 @@
             ];
 
             container.innerHTML = cards.map(card => `
-                <article class="kpi-card" data-kpi="${card.id}">
+                <article class="kpi-card" data-kpi="${card.id}" data-tone="${card.tone}" aria-label="${escapeHTML(card.label)}: ${escapeHTML(card.value)}">
                     <div class="relative z-10 flex items-center gap-3">
                         <div class="kpi-icon ${card.tone === 'gold' ? 'gold' : ''}">
                             <i class="fas ${card.icon}" aria-hidden="true"></i>
@@ -3353,6 +4755,10 @@
 
         function renderTodo() {
             document.getElementById('titulo-mes-actual').innerText = MESES[mesSeleccionado];
+            const orbitNumber = document.getElementById('month-orbit-number');
+            if (orbitNumber) orbitNumber.innerText = String(mesSeleccionado + 1).padStart(2, '0');
+            const orbitCard = document.querySelector('.month-orbit-card');
+            if (orbitCard) orbitCard.setAttribute('aria-label', `${MESES[mesSeleccionado]} de 2026`);
             document.getElementById('pdf-month').innerText = `${MESES[mesSeleccionado].toUpperCase()} 2026`;
 
             const gridWeb = document.getElementById('grid-web');
@@ -3449,12 +4855,12 @@
                         ? `<span class="institutional-badge bg-red-50 text-red-600 text-xs font-bold border-red-100"><i class="far fa-calendar-times"></i> FESTIVO</span>`
                         : `<span class="text-xs ${modClass}"><i class="fas ${isVirtual ? 'fa-video' : 'fa-location-dot'}"></i> ${escapeHTML(modalLabel)}</span>`
                     }
-                                <div class="text-[10px] text-slate-400 mt-1 whitespace-nowrap">Sem ${ev.isoWeek}</div>
+                                <div class="week-badge text-[10px] text-slate-400 mt-1 whitespace-nowrap">Sem ${ev.isoWeek}</div>
                             </div>
                             <div class="relative group">
                                 <div class="flex justify-between items-start">
                                     <h4 class="font-bold text-[#102a56] leading-tight text-sm pr-6 ${ev.isHoliday ? 'line-through opacity-50' : ''}">${escapeHTML(ev.actividad)}</h4>
-                                    ${(!ev.isHoliday && session) ? `<button onclick="abrirModalEdicion('${ev.dateKey}', '${safeActividad}', '${safeHorario}')" class="text-slate-300 hover:text-indigo-600 transition-colors absolute right-0 top-0 opacity-0 group-hover:opacity-100 bg-white rounded-full p-1" title="Editar Actividad/Horario" aria-label="Editar actividad y horario"><i class="fas fa-edit"></i></button>` : ''}
+                                    ${(!ev.isHoliday && session) ? `<button onclick="abrirModalEdicion('${ev.dateKey}', '${safeActividad}', '${safeHorario}')" class="event-edit-btn text-slate-300 hover:text-indigo-600 transition-colors absolute right-0 top-0 opacity-0 group-hover:opacity-100 bg-white rounded-full p-1" title="Editar Actividad/Horario" aria-label="Editar actividad y horario"><i class="fas fa-edit"></i></button>` : ''}
                                 </div>
                                 ${!ev.isHoliday ? `<div class="mt-3 flex items-center text-xs text-slate-500"><i class="far ${timeIcon} mr-2"></i> ${escapeHTML(ev.horario)}</div>` : holidayHtml}
                             </div>
@@ -3464,7 +4870,7 @@
                 if (!ev.isHoliday) {
                     if (session) {
                         let selectHtml = `
-                            <div class="relative pt-2 border-t border-slate-50">
+                            <div class="event-admin-control relative pt-2 border-t border-slate-50">
                                 <select onchange="confirmarCambioAsignacion(this, '${ev.dateKey}')" data-prev-value="${escapeHTML(ev.assignedTo)}" title="Debes confirmar el cambio" class="mentor-select w-full text-sm rounded-lg p-2.5 outline-none cursor-pointer appearance-none">
                                     <option value="">Seleccionar Mentor...</option>
                                     ${mentores.map(m => `<option value="${escapeHTML(m)}" ${m === ev.assignedTo ? 'selected' : ''}>${escapeHTML(m)}</option>`).join('')}
@@ -3481,20 +4887,20 @@
                         // MODO PUBLICO O APARTADO
                         let labelHtml = '';
                         if (ev.assignedTo) {
-                            labelHtml = `<div class="mt-2 pt-2 border-t border-slate-50 text-sm font-semibold text-slate-800 flex items-center"><i class="fas fa-user-check text-green-500 mr-2"></i> <span class="truncate">${escapeHTML(ev.assignedTo)}</span></div>`;
+                            labelHtml = `<div class="event-assignee mt-2 pt-2 border-t border-slate-50 text-sm font-semibold text-slate-800 flex items-center"><i class="fas fa-user-check text-green-500 mr-2"></i> <span class="truncate">${escapeHTML(ev.assignedTo)}</span></div>`;
                         } else {
                             const pendingSol = solicitudesPendientes.find(s => s.date_key === ev.dateKey);
                             if (pendingSol) {
-                                labelHtml = `<div class="mt-2 pt-2 border-t border-slate-50 text-sm font-semibold text-amber-600 flex items-center"><i class="fas fa-hourglass-half mr-2"></i> En revisión</div>`;
+                                labelHtml = `<div class="event-review mt-2 pt-2 border-t border-slate-50 text-sm font-semibold text-amber-600 flex items-center"><i class="fas fa-hourglass-half mr-2"></i> En revisión</div>`;
                             } else {
                                 const fechaTexto = `${ev.dayNum} de ${MESES[mesSeleccionado].toLowerCase()}`;
-                                labelHtml = `<button onclick="abrirModalApartar('${ev.dateKey}', '${fechaTexto}', '${safeActividad}', '${safeHorario}', '${modalLabel}')" class="w-full mt-3 py-2.5 border border-[#d6b55e] text-[#102a56] bg-[#fffaf0] rounded-lg text-sm font-bold hover:bg-[#f8efd0] transition-colors shadow-sm focus:ring-2 focus:ring-[#d6b55e] outline-none">Apartar</button>`;
+                                labelHtml = `<button onclick="abrirModalApartar('${ev.dateKey}', '${fechaTexto}', '${safeActividad}', '${safeHorario}', '${modalLabel}')" class="event-reserve w-full mt-3 py-2.5 border border-[#d6b55e] text-[#102a56] bg-[#fffaf0] rounded-lg text-sm font-bold hover:bg-[#f8efd0] transition-colors shadow-sm focus:ring-2 focus:ring-[#d6b55e] outline-none">Apartar</button>`;
                             }
                         }
                         webContent += labelHtml;
                     }
                 } else {
-                    webContent += `<div class="text-xs text-red-500 italic text-center py-2 border-t border-red-100 mt-2">No programable</div>`;
+                    webContent += `<div class="event-unavailable text-xs text-red-500 italic text-center py-2 border-t border-red-100 mt-2">No programable</div>`;
                 }
                 card.innerHTML = webContent;
                 gridWeb.appendChild(card);

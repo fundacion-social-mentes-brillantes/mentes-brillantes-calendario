@@ -5,6 +5,7 @@ const root = path.resolve(__dirname, '..');
 const indexPath = path.join(root, 'index.html');
 const readmePath = path.join(root, 'README.md');
 const logoPath = path.join(root, 'assets', 'mentes-brillantes-logo.jpeg');
+const distPath = path.join(root, 'dist');
 
 console.log('Validando integridad del proyecto...');
 
@@ -41,4 +42,21 @@ if (fs.existsSync(readmePath)) {
     }
 }
 
-console.log('✅ OK: Proyecto validado y listo para despliegue.');
+// 6. Crear un artefacto público mínimo. Evita publicar reglas, pruebas,
+// scripts internos o documentación junto con la aplicación.
+if (!distPath.startsWith(`${root}${path.sep}`)) {
+  throw new Error('❌ Error: La carpeta de salida está fuera del proyecto.');
+}
+
+fs.rmSync(distPath, { recursive: true, force: true });
+fs.mkdirSync(distPath, { recursive: true });
+
+for (const fileName of ['index.html', 'manifest.webmanifest', 'sw.js']) {
+  const source = path.join(root, fileName);
+  if (!fs.existsSync(source)) throw new Error(`❌ Error: Falta ${fileName}`);
+  fs.copyFileSync(source, path.join(distPath, fileName));
+}
+
+fs.cpSync(path.join(root, 'assets'), path.join(distPath, 'assets'), { recursive: true });
+
+console.log('✅ OK: Proyecto validado y artefacto público creado en dist/.');
